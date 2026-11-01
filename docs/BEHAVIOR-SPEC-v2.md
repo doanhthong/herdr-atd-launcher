@@ -232,3 +232,20 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
 - [ ] Rank recently used items higher in search (needs a local state file, kept out of the config)
 - [ ] Paste (⌘V) in the search box and prompts (they're drawn by the palette, not a native input)
 - [ ] Remote spaces (on another machine) as saved spaces; today folder checks and matching are local only
+
+## 10. To do
+
+Near-term work; each item gets settled here in the spec before it's built.
+
+- [ ] Hotkey to choose where a command runs: in a new tab (New Claude tab) or in the current pane (Claude in this pane), maybe Enter with ⌥ or ⇧
+- [ ] Hotkey to jump to a row quickly
+- [ ] Hint showing what Enter will do on the selected row
+- [ ] Esc goes back to the previous screen
+- [ ] Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
+- [ ] Rank commands above spaces in search results
+
+### Bugs
+
+- [ ] The "New Claude tab" quick action doesn't show up in search results
+- [ ] Search results make it hard to tell agents, commands and other kinds of rows apart, because the ranking reorders them and mixes the kinds together: keep the section grouping while searching, or style each kind differently
+- [ ] Consider listing tabs that aren't running an agent too
