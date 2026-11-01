@@ -7,7 +7,7 @@ tags: [spec, command-palette, ux]
 # Command Palette — Behavior & Experience Spec (v2)
 
 > [!abstract]
-> What the user sees and what happens, not how it's built. Open choices are in §8.
+> What the user sees and what happens, not how it's built. **This is the source of truth** for the `atd-launcher` herdr-app mod: change behavior here first, then the code. Where herdr-app forces a difference, the difference is written here too.
 
 ## 1. Concepts
 
@@ -33,7 +33,7 @@ Default quick actions: `+ New Claude tab` (`claude`, new tab) · `+ New tab` · 
 
 ## 3. Opening and closing
 
-- **Shortcut:** ⌘T where the app receives ⌘ keys, otherwise prefix+T. Configurable. Pressing it again closes the palette.
+- **Shortcut:** ⌘T where the app receives ⌘ keys, otherwise prefix+T. Configurable. Pressing it again closes the palette. In herdr-app the shortcut is a `keys.json` global binding to `mod.open:atd-launcher`; the config file's `shortcut` is written there each time the palette opens, so the file wins.
 - **Terminals often swallow ⌘ keys,** so `Alt+Enter` stands in for `⌘Enter`. The footer always shows keys that work, and Settings warns when a chosen shortcut can't be received.
 - **Config rows show at once;** live sections show `Loading…` until their data arrives.
 - **Closes:** any successful run, focus or create, and Open config file.
@@ -106,6 +106,7 @@ Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, 
 | `Shift+↑↓` | Manage quick actions | Move a pin (saves immediately) |
 | `Esc` | anywhere | Back one step: clear the search → previous screen (search and selection restored) → close |
 | `Ctrl+C` | anywhere | Close |
+| click / right-click | rows | Same as `Enter` / `Tab` |
 
 ## 6. Rows
 
@@ -126,6 +127,10 @@ Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, 
 
 "Another space…" pickers list open spaces (current first), then saved spaces that aren't open.
 
+**Running a command in a new tab:** plain text (`pnpm dev -p 3001`) is started directly, split on spaces; text with shell syntax (pipes, `&&`, quotes, `$`, `~`…) runs through the user's shell (`$SHELL -ic`). Shell functions work either way; aliases only in the second form.
+
+**Removing** a saved command or space from the palette also removes its pins (removing a space removes pins to its commands too). `⚠ missing` pins only come from hand-edits.
+
 ### 6.2 Busy pane guard
 
 If the current pane is running an agent or another foreground process, Run here asks first: **Run in new tab** · Run here anyway · Cancel.
@@ -137,7 +142,9 @@ The saved space whose folder contains the current pane's working folder (deepest
 ### 6.4 Host actions
 
 - **Inputs:** required inputs are asked in order: choices and yes/no → picker; pane/tab/space/plugin/agent → live picker; text/number → prompt (numbers checked as you type). Esc goes back one input. Actions whose required inputs can't be prompted for (lists, nested data) are hidden.
-- **Result:** success closes silently. Query actions (`list`, `get`, `read`…) show a scrollable result: `y` copies the raw result, Esc goes back.
+  - herdr-app's command list gives argument names but no types, so the kind is inferred from the name: `pane`/`tab`/`space`/`terminal` → live picker; `id` → space or tab picker by the command's group (`space.*`, `tab.*`), layout node picker for `layout.*`; `direction` → right/down (`pane.split`) or left/right/up/down; `place` → tab/right/down; `to` → program/menu; `confirmed` → yes/no; `index`/`px`/`weight` → number; `name` → layout picker (`layout.*`), theme picker (`app.theme`), else text; `layout`/`argv`/`props` → hidden; anything else → text.
+  - `app.palette` is hidden. Actions ending in `.close`, `.kill`, `.reset`, `.quit` confirm first and pass `confirmed: true` when the command takes it.
+- **Result:** success closes the palette and runs the action. herdr-app commands return nothing, so there is no result screen; a failure after closing shows as a toast.
 
 ### 6.5 Shared screens
 
@@ -177,7 +184,7 @@ Enter options · Shift+↑↓ move · Esc done
 
 ## 8. Configuration file
 
-Optional; for hand-editing and syncing dotfiles. It's re-read every time the palette opens.
+Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-launcher/config.json` and is re-read every time the palette opens. Open config file creates it with the defaults if it's missing.
 
 ```json
 {
@@ -210,10 +217,8 @@ Optional; for hand-editing and syncing dotfiles. It's re-read every time the pal
 - **Defaults:** missing `commands` → just Claude; missing `quickActions` → the three defaults; `[]` → empty. Labels (taken from the folder name or the command text), `newTab` (false) and `id`s (created by the palette) can be left out.
 - **References:** global commands by `id`, space commands by `space-id/command-id`.
 - **Errors:** a broken file shows one `⚠ Config error` row, with details and Open config file. Incomplete entries are skipped and listed there too. Everything else keeps working.
-- **Preserving the file:** writes keep unknown keys and the existing order.
-
-> [!question] Open decision
-> **References without ids.** `{ "space": "api" }` points at a space with no `id`. Should a missing id default to the label/folder name, should referenced items require an id, or should spaces be referenced by path?
+- **Preserving the file:** writes keep unknown keys and the existing order. If the file changed on disk since the palette read it, the write is refused, the file is re-read and the user is told to try again. A broken file is never written; fix it first.
+- **Ids (decided):** a missing `id` defaults to a slug of the label, else of the folder's name (`~/code/api` → `api`); duplicates get `-2`, `-3`. Pinning an item writes its id into the file so the reference stays stable if the label changes.
 
 ## 9. Ideas for later
 
@@ -224,3 +229,5 @@ Optional; for hand-editing and syncing dotfiles. It's re-read every time the pal
 - [ ] Command groups: one pin opens agent + dev server + tests
 - [ ] Import spaces from git repos under a root folder
 - [ ] Rank recently used items higher in search (needs a local state file, kept out of the config)
+- [ ] Paste (⌘V) in the search box and prompts (they're drawn by the palette, not a native input)
+- [ ] Remote spaces (on another machine) as saved spaces; today folder checks and matching are local only
