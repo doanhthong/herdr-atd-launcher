@@ -18,7 +18,7 @@ tags: [spec, command-palette, ux]
 | **Current**            | The pane, tab or space that had focus when the palette opened                                                                                                                                                                                                                                   |
 | **Saved space**        | A label + folder, with optional **space commands**                                                                                                                                                                                                                                              |
 | **Saved command**      | A label + command text. **Global** (shown everywhere; agent launchers like `claude` are global commands) or a **space command** (shown only in its space, §6.3)                                                                                                                                 |
-| **Quick action**       | An ordered pin to a built-in (`New tab`, `New space`), saved command, saved space or host action. Pins are references, so editing an item updates its pin. A pin can have its own label and, for commands, **open in new tab** (off by default). Running agents and open spaces can't be pinned |
+| **Quick action**       | An ordered pin to a built-in (`New tab`, `New space`), saved command, saved space or host action. Pins are references, so editing an item updates its pin. A pin can have its own label; command pins can **open in new tab** (off by default); command and `New tab` pins can **choose space** (off by default, implies new tab). Running agents and open spaces can't be pinned |
 | **Host action**        | One of the host app's own operations, e.g. "Pane: Split"                                                                                                                                                                                                                                        |
 
 Default quick actions: `+ New Claude tab` (`claude`, new tab) · `+ New tab` · `+ New space`.
@@ -122,10 +122,10 @@ Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, 
 | Saved space | **Open** · Open a new copy · Pin/Unpin · Add command… · Edit… · Remove… | Open switches to it if open, else creates it at its folder. Missing folder → `Folder not found: <path>` with Edit… / Remove / Back |
 | Open space | **Switch to** · Close… | |
 | Agent | **Focus** · Close pane… | |
-| Quick action | The item's menu + Rename · Toggle *open in new tab* · Move up/down · Unpin | |
+| Quick action | The item's menu + Rename · Toggle *open in new tab* · Toggle *choose space* · Move up/down · Unpin | With *choose space* on, Enter shows the space picker below and runs the command (or opens the empty tab) in a new tab there; `⌘Enter`/`Alt+Enter` skips the picker and uses the current space. Turning *open in new tab* off also turns *choose space* off |
 | Host action | **Run** · Pin/Unpin | §6.4 |
 
-"Another space…" pickers list open spaces (current first), then saved spaces that aren't open.
+"Another space…" and *choose space* pickers list the current space first, then the other open spaces, then saved spaces that aren't open. Opening a saved space creates it and runs the command in its first tab.
 
 **Running a command in a new tab:** plain text (`pnpm dev -p 3001`) is started directly, split on spaces; text with shell syntax (pipes, `&&`, quotes, `$`, `~`…) runs through the user's shell (`$SHELL -ic`). Shell functions work either way; aliases only in the second form.
 
@@ -159,8 +159,8 @@ The saved space whose folder contains the current pane's working folder (deepest
 | Row | Flow |
 | --- | --- |
 | `+ Add space…` | Folder (current) → label (folder name) |
-| `+ Add command…` | Scope (This space / Global / other space) → command → label (the command, cut to ~30 characters) → Pin? (No / Yes, run here / Yes, new tab) |
-| `✎ Manage quick actions…` | Pins in order, with the quick-action menu; `+ Add quick action…` (Built-ins / Commands / Spaces / Host actions, then for commands: run here or new tab?); `↺ Reset to defaults`. A pin whose item was deleted shows here as `⚠ missing: <label>`, never in the main list |
+| `+ Add command…` | Scope (This space / Global / other space) → command → label (the command, cut to ~30 characters) → Pin? (No / Yes, run here / Yes, new tab / Yes, new tab, choose space) |
+| `✎ Manage quick actions…` | Pins in order, with the quick-action menu; `+ Add quick action…` (Built-ins / Commands / Spaces / Host actions, then for commands: run here / new tab / new tab, choose space?; for `New tab`: current space / choose space?). A pin with *choose space* shows `choose space` in its detail; `↺ Reset to defaults`. A pin whose item was deleted shows here as `⚠ missing: <label>`, never in the main list |
 | `✎ Manage commands…` | All commands, grouped Global / per space; the menu adds **Move to…** |
 | `✎ Shortcut…` | Record a new shortcut |
 | `✎ Open config file` | Opens it in `$EDITOR` in a new tab |
@@ -205,6 +205,7 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
   ],
   "quickActions": [
     { "command": "claude", "label": "New Claude tab", "newTab": true },
+    { "command": "codex", "label": "Codex in…", "chooseSpace": true },
     { "builtin": "new-tab" },
     { "builtin": "new-space" },
     { "command": "web/test" },
@@ -214,7 +215,7 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
 }
 ```
 
-- **Defaults:** missing `commands` → just Claude; missing `quickActions` → the three defaults; `[]` → empty. Labels (taken from the folder name or the command text), `newTab` (false) and `id`s (created by the palette) can be left out.
+- **Defaults:** missing `commands` → just Claude; missing `quickActions` → the three defaults; `[]` → empty. Labels (taken from the folder name or the command text), `newTab` (false), `chooseSpace` (false; `true` implies `newTab`, ignored on pins other than commands and `new-tab`) and `id`s (created by the palette) can be left out.
 - **References:** global commands by `id`, space commands by `space-id/command-id`.
 - **Errors:** a broken file shows one `⚠ Config error` row, with details and Open config file. Incomplete entries are skipped and listed there too. Everything else keeps working.
 - **Preserving the file:** writes keep unknown keys and the existing order. If the file changed on disk since the palette read it, the write is refused, the file is re-read and the user is told to try again. A broken file is never written; fix it first.

@@ -70,3 +70,20 @@ test("movePin / reset", () => {
   C.resetPins(raw);
   assert.equal(raw.quickActions, undefined);
 });
+test("choose space: parse, add, toggles", () => {
+  const c = C.parseConfig(JSON.stringify({ quickActions: [{ command: "claude", chooseSpace: true }, { builtin: "new-tab", chooseSpace: true }, { builtin: "new-space", chooseSpace: true }] }));
+  assert.deepEqual(c.quickActions.map((q) => [q.chooseSpace, q.newTab]), [[true, true], [true, true], [false, false]]);
+  const raw = { quickActions: [{ command: "claude", newTab: true }, { builtin: "new-tab" }] };
+  C.togglePinChooseSpace(raw, 0);
+  assert.deepEqual(raw.quickActions[0], { command: "claude", chooseSpace: true });
+  C.togglePinChooseSpace(raw, 0);
+  assert.deepEqual(raw.quickActions[0], { command: "claude", newTab: true });
+  C.togglePinChooseSpace(raw, 0);
+  C.togglePinNewTab(raw, 0);
+  assert.deepEqual(raw.quickActions[0], { command: "claude" });
+  C.togglePinChooseSpace(raw, 1);
+  C.togglePinChooseSpace(raw, 1);
+  assert.deepEqual(raw.quickActions[1], { builtin: "new-tab" });
+  C.addPin(raw, { command: "claude", newTab: true, chooseSpace: true });
+  assert.deepEqual(raw.quickActions.at(-1), { command: "claude", chooseSpace: true });
+});

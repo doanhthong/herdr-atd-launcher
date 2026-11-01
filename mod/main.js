@@ -447,7 +447,7 @@ export default class Palette extends View {
   builtinMenu(ref) {
     if (ref === "new-tab") {
       return [
-        { label: "In current space", icon: "+", color: "create", act: () => { this.close(); run("tab.new", this.origin.space ? { space: this.origin.space } : {}); } },
+        { label: "In current space", icon: "+", color: "create", newTab: true, act: () => { this.close(); run("tab.new", this.origin.space ? { space: this.origin.space } : {}); } },
         { label: "In another space…", icon: "+", color: "create", act: async (cx) => {
           const dest = await this.pickSpace(cx, "New tab → In another space");
           if (dest) return this.newTabIn(dest, {});
@@ -471,11 +471,15 @@ export default class Palette extends View {
     let base = [];
     if (t?.kind === "command") {
       base = this.commandMenu(t.command);
-      if (pin.newTab) base = [base[1], base[0], ...base.slice(2)]; // default follows the pin
+      if (pin.chooseSpace) base = [base[2], base[1], base[0], ...base.slice(3)]; // default follows the pin
+      else if (pin.newTab) base = [base[1], base[0], ...base.slice(2)];
       base = base.filter((x) => x.label !== "Pin" && x.label !== "Unpin");
     } else if (t?.kind === "space") base = this.savedSpaceMenu(t.saved).filter((x) => x.label !== "Pin" && x.label !== "Unpin");
     else if (t?.kind === "host") base = this.hostMenu(t.host).slice(0, 1);
-    else if (t?.kind === "builtin") base = this.builtinMenu(t.ref);
+    else if (t?.kind === "builtin") {
+      base = this.builtinMenu(t.ref);
+      if (pin.chooseSpace && base.length > 1) base = [base[1], base[0], ...base.slice(2)];
+    }
     const name = row.label;
     const q = [
       { label: "Rename…", icon: "✎", act: async (cx) => {
@@ -489,6 +493,12 @@ export default class Palette extends View {
       q.push({ label: pin.newTab ? "Open in new tab: on (turn off)" : "Open in new tab: off (turn on)", icon: "✎", act: async () => {
         await this.save((raw) => C.togglePinNewTab(raw, pin.index));
         return `✓ "${name}" now runs ${pin.newTab ? "here" : "in a new tab"}`;
+      } });
+    }
+    if (t?.kind === "command" || (t?.kind === "builtin" && t.ref === "new-tab")) {
+      q.push({ label: pin.chooseSpace ? "Choose space: on (turn off)" : "Choose space: off (turn on)", icon: "✎", act: async () => {
+        await this.save((raw) => C.togglePinChooseSpace(raw, pin.index));
+        return pin.chooseSpace ? `✓ "${name}" now uses the current space` : `✓ "${name}" now asks for a space`;
       } });
     }
     q.push(
@@ -775,11 +785,12 @@ export default class Palette extends View {
           { key: "no", icon: "", label: "No", value: "no" },
           { key: "here", icon: "▸", label: "Yes, run here", value: "here" },
           { key: "tab", icon: "+", color: "create", label: "Yes, new tab", value: "tab" },
+          { key: "choose", icon: "+", color: "create", label: "Yes, new tab, choose space", value: "choose" },
         ]);
         if (!r) return BACK;
         await this.save((raw) => {
           const ref = C.addCommand(raw, s.space, { label: s.label, command: s.command });
-          if (r.value !== "no") C.addPin(raw, { command: ref, newTab: r.value === "tab" });
+          if (r.value !== "no") C.addPin(raw, { command: ref, newTab: r.value === "tab", chooseSpace: r.value === "choose" });
         });
       },
     ]);
@@ -810,7 +821,7 @@ export default class Palette extends View {
         const snap = this.snap();
         const rows = this.cfg.quickActions.map((pin, i) => {
           const r = pinRow(this.cfg, pin, snap, this.ctx());
-          const kindText = pin.kind === "builtin" ? "built-in" : r.detail;
+          const kindText = pin.kind === "builtin" ? ["built-in", r.detail].filter(Boolean).join(" · ") : r.detail;
           return { ...r, num: i + 1, detail: kindText };
         });
         rows.push({ key: "add", kind: "addPin", icon: "+", color: "create", label: "Add quick action…" });
@@ -876,17 +887,27 @@ export default class Palette extends View {
         label = r.label;
       },
       async (s) => {
-        if (s.kind !== "command") return;
-        const r = await this.pick(cx, `"${label}" → Run where?`, [
-          { key: "here", icon: "▸", label: "Run here", value: false },
-          { key: "tab", icon: "+", color: "create", label: "New tab", value: true },
-        ]);
+        let opts;
+        if (s.kind === "command") {
+          opts = [
+            { key: "here", icon: "▸", label: "Run here", value: "here" },
+            { key: "tab", icon: "+", color: "create", label: "New tab", value: "tab" },
+            { key: "choose", icon: "+", color: "create", label: "New tab, choose space", value: "choose" },
+          ];
+        } else if (s.kind === "builtin" && s.ref === "new-tab") {
+          opts = [
+            { key: "current", icon: "+", color: "create", label: "Current space", value: "here" },
+            { key: "choose", icon: "+", color: "create", label: "Choose space", value: "choose" },
+          ];
+        } else return;
+        const r = await this.pick(cx, `"${label}" → Run where?`, opts);
         if (!r) return BACK;
-        s.newTab = r.value;
+        s.newTab = r.value === "tab";
+        s.chooseSpace = r.value === "choose";
       },
     ]);
     if (!st) return null;
-    await this.save((raw) => C.addPin(raw, { [st.kind]: st.ref, newTab: st.newTab }));
+    await this.save((raw) => C.addPin(raw, { [st.kind]: st.ref, newTab: st.newTab, chooseSpace: st.chooseSpace }));
     return `✓ Pinned "${label}"`;
   }
 

@@ -116,7 +116,8 @@ export function normalize(raw) {
       errors.push(`quickActions[${i}]: unknown builtin "${src.builtin}"`);
       return;
     }
-    quickActions.push({ src, index: i, kind, ref: src[kind], label: typeof src.label === "string" && src.label ? src.label : null, newTab: src.newTab === true });
+    const chooseSpace = src.chooseSpace === true && (kind === "command" || (kind === "builtin" && src.builtin === "new-tab"));
+    quickActions.push({ src, index: i, kind, ref: src[kind], label: typeof src.label === "string" && src.label ? src.label : null, newTab: src.newTab === true || chooseSpace, chooseSpace });
   });
 
   return { raw, errors, synthetic, shortcut, commands, spaces, quickActions };
@@ -284,7 +285,8 @@ export function addPin(raw, pin) {
   const entry = {};
   for (const k of ["builtin", "command", "space", "action"]) if (pin[k]) entry[k] = pin[k];
   if (pin.label) entry.label = pin.label;
-  if (pin.newTab) entry.newTab = true;
+  if (pin.chooseSpace) entry.chooseSpace = true;
+  else if (pin.newTab) entry.newTab = true;
   raw.quickActions.push(entry);
 }
 
@@ -318,8 +320,23 @@ export function renamePin(raw, index, label) {
 export function togglePinNewTab(raw, index) {
   materialize(raw, "quickActions");
   const q = raw.quickActions[index];
-  if (q.newTab) delete q.newTab;
-  else q.newTab = true;
+  if (q.newTab || q.chooseSpace) {
+    delete q.newTab;
+    delete q.chooseSpace;
+  } else q.newTab = true;
+}
+
+/** Choose space implies new tab; turning it off keeps the pin in a new tab. */
+export function togglePinChooseSpace(raw, index) {
+  materialize(raw, "quickActions");
+  const q = raw.quickActions[index];
+  if (q.chooseSpace) {
+    delete q.chooseSpace;
+    if (q.command) q.newTab = true;
+  } else {
+    q.chooseSpace = true;
+    delete q.newTab;
+  }
 }
 
 export function resetPins(raw) {
