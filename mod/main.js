@@ -9,7 +9,7 @@ import { View, div } from "gpui-kit";
 import { v_flex, h_flex, v_virtual_list, Scrollbar, VirtualListScrollHandle } from "gpui-base";
 import {
   spaces, agents, panes, focused, commands, terminals, theme, props, closeOverlay, run, hc, exec,
-  home, appHome, readTextFile, writeTextFile, layout, layouts, themes, notify,
+  home, appHome, readTextFile, writeTextFile, layout, layouts, themes, notify, settings,
 } from "herdr";
 import * as C from "./lib/config.js";
 import { buildMain, flatten, currentSavedSpace, openSpaceFor, expand, tilde, commandRow, savedSpaceRow, openSpaceRow, hostRow, pinRow, resolvePin } from "./lib/model.js";
@@ -1013,8 +1013,10 @@ export default class Palette extends View {
     const { items, rows, total } = this.view(s);
     const sel = rows[s.sel];
     const searching = Boolean(s.query);
-    const sizes = items.map((it) => (it.head ? HEAD_H : ROW_H));
-    const list = v_virtual_list("pal-list", items.length, sizes.length ? sizes : ROW_H, (i) => {
+    // Element sizes follow the app zoom; a virtual list's item sizes don't.
+    const z = Number(settings()?.zoom) || 1;
+    const sizes = items.map((it) => (it.head ? HEAD_H : ROW_H) * z);
+    const list = v_virtual_list("pal-list", items.length, sizes.length ? sizes : ROW_H * z, (i) => {
       const it = items[i];
       return it.head ? `h:${it.head}:${i}` : it.note ? `n:${i}` : it.row.key;
     }, (range) => items.slice(range.start, range.end).map((it) => {

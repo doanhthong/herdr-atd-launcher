@@ -61,6 +61,7 @@ herdr-app shot /path/in/scratchpad.png                # look at it
 - Never keep a `cx` across callbacks; use the one each callback or `cx.spawn` task gets.
 - No `setTimeout`; use `cx.timer`. Animate with `.loop`/`.frames`, not redraw timers.
 - Use `theme()` colors. In the current theme `selected` ≈ `popover`, so highlight with `hover`.
+- Element sizes (`h()`, text) follow the app zoom, but `v_virtual_list` item sizes don't: multiply them by `settings().zoom` or rows overlap.
 - `run()` returns nothing. To get created ids you'd need `exec("herdr-app", ["do", ...])`.
 - The `keys.json` edit for the shortcut must keep the person's other bindings untouched.
 
