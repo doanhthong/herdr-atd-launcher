@@ -200,15 +200,17 @@ export function buildMain(snap, cfg, ctx) {
  * Returns { items: [{head}|{row}], rows, total }.
  */
 export function flatten(sections, query) {
-  const all = sections.flatMap((s) => s.rows.map((r) => (s.tag ? { ...r, tag: s.tag } : r)));
+  // Items and rows share the same (tagged) row objects.
+  const tagged = sections.map((s) => s.rows.map((r) => (s.tag ? { ...r, tag: s.tag } : r)));
+  const all = tagged.flat();
   const total = all.length;
   if (!query) {
     const items = [];
-    for (const s of sections) {
+    sections.forEach((s, i) => {
       if (s.title) items.push({ head: s.title });
       if (s.loading && !s.rows.length) items.push({ note: "Loading…" });
-      for (const r of s.rows) items.push({ row: r });
-    }
+      for (const r of tagged[i]) items.push({ row: r });
+    });
     return { items, rows: all, total };
   }
   const own = new Set(all.filter((r) => r.kind !== "pin").map((r) => r.key));

@@ -265,7 +265,7 @@ export default class Palette extends View {
       if (!n) return;
       s.sel = Math.max(0, Math.min(n - 1, s.sel + d));
       s.selKey = rows[s.sel]?.key ?? null;
-      this.scrollToSel();
+      this.scrollToSel(d);
     };
     const row = rows[s.sel];
     if (k === "up" && m.shift && s.onMove) { if (row) s.onMove(row, -1, cx); return cx.notify(); }
@@ -320,14 +320,16 @@ export default class Palette extends View {
     return v;
   }
 
-  scrollToSel() {
+  // §4.2: keep the selected row on screen. `dir` is the last move: moving down
+  // scrolls to the row itself, otherwise its section header comes along.
+  scrollToSel(dir = 0) {
     const s = this.top();
     if (s.type !== "list") return;
     const { items, rows } = this.view(s);
-    const row = rows[s.sel];
-    let i = items.findIndex((it) => it.row === row);
-    // Keep the section header in view when selecting a section's first row.
-    if (i > 0 && items[i - 1].head) i -= 1;
+    const key = rows[s.sel]?.key;
+    if (key == null) return;
+    let i = items.findIndex((it) => it.row?.key === key);
+    if (i > 0 && dir <= 0 && items[i - 1].head) i -= 1;
     if (i >= 0) this.scroll.scroll_to_item(i);
   }
 

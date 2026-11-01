@@ -87,7 +87,7 @@ Shown in this order; empty sections are hidden. Each section puts the current it
 | `●` current/default (green) | `◐` agent waiting (yellow) | `+` creates (green) | `▸` runs here | `→` switches focus | `−` closes/removes (red) | `✎` / `⧉` edit/copy |
 | --- | --- | --- | --- | --- | --- | --- |
 
-Each row starts with a 2-character icon slot so text lines up. Long lines are cut with `…`; the selected row's highlight must survive the cut. The selected row (moved by the arrow keys or set by a click) has the strong highlight. The row under the mouse gets a fainter one, so the two can't be confused; hover doesn't move the selection (herdr-app gives virtual-list rows no hover event, and its hover state can go stale and leave a faint highlight behind). Highlights of neighbouring rows never touch.
+Each row starts with a 2-character icon slot so text lines up. Long lines are cut with `…`; the selected row's highlight must survive the cut. The selected row (moved by the arrow keys or set by a click) has the strong highlight. The row under the mouse gets a fainter one, so the two can't be confused; hover doesn't move the selection (herdr-app gives virtual-list rows no hover event, and its hover state can go stale and leave a faint highlight behind). Highlights of neighbouring rows never touch. Moving the selection scrolls the list so the selected row stays on screen; when moving up onto a section's first row, the section header comes into view too.
 
 ### 4.3 Search
 

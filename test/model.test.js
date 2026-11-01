@@ -59,3 +59,11 @@ test("search: one ranked list, pinned items once", () => {
   assert.ok(total > items.length);
   assert.ok(items.every((i) => i.row && i.row.tag));
 });
+test("flatten: items and rows share row objects, tagged sections too", () => {
+  const secs = buildMain(snap, cfg, { hostActions: host, currentSaved: cfg.spaces[0] });
+  assert.ok(secs.some((s) => s.tag && s.rows.length), "fixture has a tagged section");
+  const { items, rows } = flatten(secs, "");
+  const itemRows = items.filter((i) => i.row).map((i) => i.row);
+  assert.equal(itemRows.length, rows.length);
+  rows.forEach((r, i) => assert.equal(itemRows[i], r));
+});
