@@ -1,0 +1,4 @@
+node_modules/
+.DS_Store
+mod/gpui-kit.d.ts
+mod/jsconfig.json
