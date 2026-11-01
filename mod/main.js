@@ -988,22 +988,25 @@ export default class Palette extends View {
 
   renderRow(t, row, selected, searching) {
     const iconColor = this.color(t, row.color) ?? t.muted;
-    return h_flex()
-      .h(ROW_H)
-      .mx(4)
+    // §4.2: the selected row gets the strong highlight, the hovered one a faint
+    // one; the box is inset 1px top and bottom so neighbours never touch.
+    const faint = /^#[0-9a-f]{6}$/i.test(t.hover) ? `${t.hover}59` : t.hover;
+    const box = h_flex()
+      .h(ROW_H - 2)
+      .w_full()
       .px(8)
       .gap(8)
       .items_center()
       .rounded(6)
-      .cursor_pointer()
       .when(selected, (el) => el.bg(t.hover))
-      .hover((s) => s.bg(t.hover))
+      .when(!selected, (el) => el.hover((st) => st.bg(faint)))
       .child(div().w(16).flex_none().text_color(iconColor).child(row.icon ?? ""))
       .when(row.num != null, (el) => el.child(div().w(16).flex_none().text_color(t.dim).child(String(row.num))))
       .child(div().flex_shrink_0().max_w(260).truncate().text_color(row.missing ? t.ansi3 : t.foreground).child(row.label))
       .child(div().flex_1().min_w(0).truncate().text_size(12).text_color(t.dim).child(row.detail ?? ""))
       .when(Boolean(row.aside), (el) => el.child(div().flex_none().text_size(12).text_color(this.color(t, row.asideColor) ?? t.dim).child(row.aside)))
       .when(searching && Boolean(row.tag), (el) => el.child(div().flex_none().px(6).rounded(4).bg(t.raised).text_size(11).text_color(t.dim).child(row.tag)));
+    return h_flex().h(ROW_H).mx(4).items_center().cursor_pointer().child(box);
   }
 
   renderList(t, s) {
@@ -1017,7 +1020,7 @@ export default class Palette extends View {
     }, (range) => items.slice(range.start, range.end).map((it) => {
       if (it.head) return h_flex().h(HEAD_H).px(12).pt(8).items_end().text_size(11).font_semibold().text_color(t.dim).child(it.head);
       if (it.note) return h_flex().h(ROW_H).px(36).items_center().text_size(12).text_color(t.dim).child(it.note);
-      return this.renderRow(t, it.row, it.row === sel, searching);
+      return this.renderRow(t, it.row, it.row.key === sel?.key, searching);
     })).track_scroll(this.scroll).size_full()
       .on_item_click((key, cx) => {
         const i = rows.findIndex((r) => r.key === key);
