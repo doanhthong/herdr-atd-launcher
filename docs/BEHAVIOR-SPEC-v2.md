@@ -35,6 +35,7 @@ Default quick actions: `+ New Claude tab` (`claude`, new tab) · `+ New tab` · 
 
 - **Shortcut:** ⌘T where the app receives ⌘ keys, otherwise prefix+T. Configurable. Pressing it again closes the palette. In herdr-app the shortcut is a `keys.json` global binding to `mod.open:atd-launcher`; the config file's `shortcut` is written there each time the palette opens, so the file wins.
 - **Terminals often swallow ⌘ keys,** so `Alt+Enter` stands in for `⌘Enter`. The footer always shows keys that work, and Settings warns when a chosen shortcut can't be received.
+- **Overlay kind:** herdr-app closes a `dialog` on Esc before the mod sees the key, so Esc could never go back. The palette is therefore a `window` overlay (Esc goes to the mod, no dimming, a click beside it does not close it). Close with Esc on the main list, `Ctrl+C`, or the shortcut again.
 - **Config rows show at once;** live sections show `Loading…` until their data arrives.
 - **Closes:** any successful run, focus or create, and Open config file.
 - **Stays open:** settings changes, cancels, and failures (the error is shown, then the user is back where they were, with inputs kept).
@@ -104,7 +105,7 @@ Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, 
 | `⌘Enter` / `Alt+Enter` | commands | Run in a new tab (other rows: same as Enter) |
 | `Tab` | rows | Options menu |
 | `Shift+↑↓` | Manage quick actions | Move a pin (saves immediately) |
-| `Esc` | anywhere | Back one step: clear the search → previous screen (search and selection restored) → close |
+| `Esc` | anywhere | Back one step: clear the search → previous screen (search and selection restored) → close. The header always names what Esc will do now ("Esc clear search", "Esc back to <screen>", "Esc close") |
 | `Ctrl+C` | anywhere | Close |
 | click / right-click | rows | Same as `Enter` / `Tab` |
 
@@ -235,17 +236,17 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
 
 ## 10. To do
 
-Near-term work; each item gets settled here in the spec before it's built.
+Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each item gets settled here in the spec before it's built.
 
-- [ ] Hotkey to choose where a command runs: in a new tab (New Claude tab) or in the current pane (Claude in this pane), maybe Enter with ⌥ or ⇧
-- [ ] Hotkey to jump to a row quickly
-- [ ] Hint showing what Enter will do on the selected row
-- [ ] Esc goes back to the previous screen
-- [ ] Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
-- [ ] Rank commands above spaces in search results
+- [ ] **T1** Hotkey to choose where a command runs: in a new tab (New Claude tab) or in the current pane (Claude in this pane), maybe Enter with ⌥ or ⇧
+- [ ] **T2** Hotkey to jump to a row quickly
+- [ ] **T3** Hint showing what Enter will do on the selected row
+- [x] **T4** Esc goes back to the previous screen (header now names what Esc does, and the overlay is a `window` so Esc reaches the mod; see §3, §5; tried in the real window)
+- [ ] **T5** Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
+- [ ] **T6** Rank commands above spaces in search results
 
 ### Bugs
 
-- [ ] The "New Claude tab" quick action doesn't show up in search results
-- [ ] Search results make it hard to tell agents, commands and other kinds of rows apart, because the ranking reorders them and mixes the kinds together: keep the section grouping while searching, or style each kind differently
-- [ ] Consider listing tabs that aren't running an agent too
+- [ ] **B1** The "New Claude tab" quick action doesn't show up in search results
+- [ ] **B2** Search results make it hard to tell agents, commands and other kinds of rows apart, because the ranking reorders them and mixes the kinds together: keep the section grouping while searching, or style each kind differently
+- [ ] **B3** Consider listing tabs that aren't running an agent too

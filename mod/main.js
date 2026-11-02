@@ -104,7 +104,7 @@ export default class Palette extends View {
     return {
       type: "list", main: true, title: "Command Palette", query: "", cursor: 0, sel: 0, selKey: null, counter: true,
       build: () => buildMain(this.snap(), this.cfg, this.ctx()),
-      footer: "Enter run · ⌘Enter new tab · Tab options · Esc back",
+      footer: "Enter run · ⌘Enter new tab · Tab options",
       onEnter: (row, cx, alt) => this.enterRow(row, cx, alt),
       onTab: (row, cx) => this.openMenu(row, cx),
     };
@@ -149,6 +149,14 @@ export default class Palette extends View {
       this.close();
     }
     cx.notify();
+  }
+
+  /** What Esc will do now, mirroring back(). */
+  escHint() {
+    const s = this.top();
+    if (s.type === "list" && s.query) return "Esc clear search";
+    if (this.stack.length > 1) return `Esc back to ${this.stack[this.stack.length - 2].title}`;
+    return "Esc close";
   }
 
   setStatus(text, kind = "ok") { this.status = { text, kind }; }
@@ -1124,7 +1132,7 @@ export default class Palette extends View {
       .text_color(t.foreground)
       .child(h_flex().flex_none().items_center()
         .child(div().flex_1().truncate().text_size(14).font_semibold().child(s.title))
-        .child(div().text_size(11).text_color(t.dim).child(this.stack.length > 1 ? "Esc back" : "Esc close")))
+        .child(div().text_size(11).text_color(t.dim).child(this.escHint())))
       .child(body)
       .when(Boolean(status), (el) => el.child(div().flex_none().px(4).text_size(12).text_color(status.kind === "error" ? t.ansi1 : t.ansi2).child(status.text)))
       .child(div().flex_none().pt(6).border_t(1).border_color(t.border).text_size(11).text_color(t.dim).child(s.footer ?? ""));
