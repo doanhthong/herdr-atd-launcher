@@ -244,6 +244,7 @@ Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each
 - [x] **T4** Esc goes back to the previous screen (header now names what Esc does, and the overlay is a `window` so Esc reaches the mod; see §3, §5; tried in the real window)
 - [ ] **T5** Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
 - [ ] **T6** Rank commands above spaces in search results
+- [ ] **T7** (minor) Quick actions can start Claude in a subfolder of a space: when in space `x`, run Claude in `x/sub-folder` and open it as a new Claude tab from the palette (today this is only possible with ⌘Enter)
 
 ### Bugs
 
