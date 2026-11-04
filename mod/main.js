@@ -24,6 +24,8 @@ export default class Palette extends View {
   init(_props, cx) {
     this.handle = cx.focus_handle();
     this.handle.focus();
+    // The window overlay moves focus on Tab before on_key_down sees it, so bind Tab to an action.
+    try { cx.bind_keys([{ keystroke: "tab", action: "atd-tab", context: "AtdPalette" }]); } catch (e) { /* keep going: other keys still work */ }
     cx.timer.after(300, () => this.handle.focus());
     this.scroll = VirtualListScrollHandle.new();
     this.home = home();
@@ -1122,6 +1124,8 @@ export default class Palette extends View {
     return v_flex()
       .id("atd-palette")
       .track_focus(this.handle)
+      .key_context("AtdPalette")
+      .on_action("atd-tab", (_e, cx) => this.onKey({ key: "tab", modifiers: {} }, cx))
       .on_key_down((e, cx) => this.onKey(e, cx))
       .size_full()
       .min_h(0)
