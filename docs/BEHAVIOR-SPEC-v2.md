@@ -1,6 +1,7 @@
 ---
 title: Command Palette — Behavior & Experience Spec (v2)
 status: draft for review
+updated: 2026-11-06
 tags: [spec, command-palette, ux]
 ---
 
