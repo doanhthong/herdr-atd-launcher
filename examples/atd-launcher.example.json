@@ -2,7 +2,9 @@
   "shortcut": "cmd-t",
   "commands": [
     { "id": "claude", "label": "Claude", "command": "claude" },
-    { "id": "codex", "label": "Codex", "command": "codex", "askSpace": false }
+    { "id": "codex", "label": "Codex", "command": "codex", "askSpace": false },
+    { "id": "zed", "label": "Open in Zed", "command": "zed ." },
+    { "id": "vscode", "label": "Open in VS Code", "command": "code ." }
   ],
   "spaces": [
     {
