@@ -580,7 +580,7 @@ export default class Palette extends View {
       run("space.select", { id: dest.open.id });
     } else if (dest.saved) {
       this.close();
-      run("space.new", { name: dest.saved.label, folder: expand(dest.saved.path, this.home), ...(extra.name ? { tab: extra.name } : {}), ...(extra.argv ? { argv: extra.argv } : {}) });
+      run("space.new", { name: dest.saved.label, folder: expand(dest.saved.path, this.home), ...(extra.argv ? { argv: extra.argv } : {}) });
     }
   }
 
