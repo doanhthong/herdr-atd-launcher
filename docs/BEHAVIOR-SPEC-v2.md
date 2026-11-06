@@ -93,7 +93,7 @@ Each row starts with a 2-character icon slot so text lines up. Long lines are cu
 
 ### 4.3 Search
 
-Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, consecutive characters, shorter text. Also matches folders, command text, agent/tab names and method names. While searching, headers hide, results form one ranked list with a dim type tag (`Agent`, `Command`…), and pinned items appear once.
+Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, consecutive characters, shorter text. Commands (and pins to commands) get a fixed bonus, so they rank above spaces that match about equally; a clearly better match still wins. Also matches folders, command text, agent/tab names and method names. While searching, headers hide, results form one ranked list with a dim type tag (`Agent`, `Command`…), and pinned items appear once.
 
 ## 5. Keys
 
@@ -263,7 +263,7 @@ Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each
 - [x] **T3** Hint showing what Enter will do on the selected row: the per-row footer hints in §4 cover it (built with T9)
 - [x] **T4** Esc goes back to the previous screen (header now names what Esc does, and the overlay is a `window` so Esc reaches the mod; see §3, §5; tried in the real window)
 - [ ] **T5** Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
-- [ ] **T6** Rank commands above spaces in search results
+- [x] **T6** Rank commands above spaces in search results
 - [ ] **T7** (minor) Quick actions can start Claude in a subfolder of a space: when in space `x`, run Claude in `x/sub-folder` and open it as a new Claude tab from the palette (today this is only possible with ⌘Enter)
 - [x] **T8** Running a command in a new tab (including quick actions) doesn't rename the tab, so herdr-app's automatic title stays; see §6 saved command
 

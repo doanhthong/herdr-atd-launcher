@@ -194,6 +194,12 @@ export function buildMain(snap, cfg, ctx) {
   return sections;
 }
 
+/** Search ranking bonus: commands (and pins to commands) rank above spaces. */
+const COMMAND_BONUS = 10;
+function kindBonus(r) {
+  return r.kind === "command" || (r.kind === "pin" && r.target?.kind === "command") ? COMMAND_BONUS : 0;
+}
+
 /**
  * Turns sections into display items. Without a query: headers and rows. With one:
  * a single ranked list with type tags, pinned items once (the item's own row wins).
@@ -218,7 +224,7 @@ export function flatten(sections, query) {
   for (const r of all) {
     if (r.kind === "pin" && r.targetKey && own.has(r.targetKey)) continue;
     const s = scoreFields(query, r.label, [r.detail ?? "", ...(r.extras ?? [])]);
-    if (s != null) scored.push({ r, s });
+    if (s != null) scored.push({ r, s: s + kindBonus(r) });
   }
   scored.sort((a, b) => b.s - a.s);
   const rows = scored.map((x) => x.r);

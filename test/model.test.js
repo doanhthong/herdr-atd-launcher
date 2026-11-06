@@ -67,3 +67,15 @@ test("flatten: items and rows share row objects, tagged sections too", () => {
   assert.equal(itemRows.length, rows.length);
   rows.forEach((r, i) => assert.equal(itemRows[i], r));
 });
+test("search: a command ranks above a space matching equally", () => {
+  const c = parseConfig(JSON.stringify({
+    commands: [{ id: "docs", command: "docs", label: "docs" }],
+    spaces: [{ id: "docs", path: "~/code/docs" }],
+    quickActions: [],
+  }));
+  const secs = buildMain({ ...snap, spaces: [], agents: [] }, c, { hostActions: [], currentSaved: null });
+  const { rows } = flatten(secs, "docs");
+  const iCmd = rows.findIndex((r) => r.kind === "command");
+  const iSpace = rows.findIndex((r) => r.kind === "savedSpace");
+  assert.ok(iCmd >= 0 && iSpace >= 0 && iCmd < iSpace);
+});
