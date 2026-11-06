@@ -96,11 +96,11 @@ export function pinRow(cfg, pin, snap, ctx) {
   if (!r) return { key: `pin:${pin.index}`, kind: "pin", missing: true, icon: "⚠", color: "warn", label: `missing: ${pin.label ?? pin.ref}`, detail: pin.kind, pin };
   const t = r.target;
   const row = { key: `pin:${pin.index}`, kind: "pin", pin, target: t, label: pin.label ?? r.label };
-  if (t.kind === "builtin") Object.assign(row, { icon: "+", color: "create", detail: pin.chooseSpace ? "choose space" : "", targetKey: `builtin:${pin.ref}` });
+  if (t.kind === "builtin") Object.assign(row, { icon: "+", color: "create", detail: "", targetKey: `builtin:${pin.ref}` });
   if (t.kind === "command") {
     Object.assign(row, {
-      icon: pin.newTab ? "+" : "▸", color: pin.newTab ? "create" : null,
-      detail: `${pin.chooseSpace ? "new tab · choose space" : pin.newTab ? "new tab" : "here"} · ${t.command.command}`, extras: [t.command.command], targetKey: `command:${t.command.ref}`,
+      icon: "+", color: "create",
+      detail: t.command.command, extras: [t.command.command], targetKey: `command:${t.command.ref}`,
     });
   }
   if (t.kind === "space") {

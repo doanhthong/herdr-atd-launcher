@@ -12,7 +12,7 @@ const cfg = parseConfig(JSON.stringify({
     { id: "web-sub", path: "~/code/web/packages/ui" },
     { id: "docs", path: "~/code/docs" },
   ],
-  quickActions: [{ command: "claude", label: "New Claude tab", newTab: true }, { builtin: "new-tab" }, { command: "web/test" }, { command: "gone" }],
+  quickActions: [{ command: "claude", label: "New Claude tab" }, { builtin: "new-tab" }, { command: "web/test" }, { command: "gone" }],
 }));
 const snap = {
   home,

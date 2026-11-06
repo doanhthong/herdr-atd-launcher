@@ -106,8 +106,8 @@ export default class Palette extends View {
     return {
       type: "list", main: true, title: "Command Palette", query: "", cursor: 0, sel: 0, selKey: null, counter: true,
       build: () => buildMain(this.snap(), this.cfg, this.ctx()),
-      footer: "Enter run · ⌘Enter new tab · Tab options",
-      onEnter: (row, cx, alt) => this.enterRow(row, cx, alt),
+      footer: (row) => this.mainFooter(row),
+      onEnter: (row, cx, mode) => this.enterRow(row, cx, mode),
       onTab: (row, cx) => this.openMenu(row, cx),
     };
   }
@@ -285,7 +285,7 @@ export default class Palette extends View {
     else if (k === "pageup") move(-10);
     else if (k === "pagedown") move(10);
     else if (k === "enter") {
-      if (row) s.onEnter?.(row, cx, m.platform || m.alt);
+      if (row) s.onEnter?.(row, cx, m.platform && m.shift ? "here" : m.platform || m.alt ? "tab" : m.shift ? "pane" : "enter");
     } else if (k === "tab") {
       if (row && s.onTab) s.onTab(row, cx);
     } else return;
@@ -345,12 +345,31 @@ export default class Palette extends View {
 
   // ---- rows: default action and options menu ---------------------------------
 
-  enterRow(row, cx, alt) {
+  // §6.1: Enter runs the first item; ⌘/Alt, Shift and Ctrl run the item with that
+  // slot. On rows that run things, a key without an item is ignored; on the others
+  // the modifiers do the same as Enter.
+  enterRow(row, cx, mode = "enter") {
     const items = this.menuFor(row);
     if (!items.length) return;
     let item = items[0];
-    if (alt) item = items.find((x) => x.newTab) ?? item;
+    if (mode !== "enter") {
+      const hit = items.find((x) => x.slot === mode);
+      const runnable = items.some((x) => x.slot === "pane");
+      if (hit) item = hit;
+      else if (runnable) return;
+    }
     this.flow(cx, (cx) => this.runItem(item, cx));
+  }
+
+  /** Footer of the main list: the keys that do something on the selected row. */
+  mainFooter(row) {
+    const items = row ? this.menuFor(row) : [];
+    const keys = { tab: "⌘↵", pane: "⇧↵", here: "⌘⇧↵" };
+    const parts = [];
+    if (items[0]) parts.push(`Enter ${items[0].short ?? items[0].label.toLowerCase()}`);
+    for (const it of items.slice(1)) if (keys[it.slot] && it.short) parts.push(`${keys[it.slot]} ${it.short}`);
+    if (items[0]) parts.push("Tab more");
+    return parts.join(" · ");
   }
 
   async runItem(item, cx) {
@@ -362,7 +381,16 @@ export default class Palette extends View {
     if (!items.length) return;
     const screen = {
       type: "list", title: `${row.label} → Options`, footer: "Enter choose · Esc back",
-      build: () => [{ rows: items.map((it, i) => ({ key: `m${i}`, icon: it.icon ?? "", color: it.color ?? null, label: it.label, detail: it.detail ?? "", item: it })) }],
+      build: () => {
+        const rows = items.map((it, i) => ({
+          key: `m${i}`, icon: it.icon ?? "", color: it.color ?? null, label: it.label, detail: it.detail ?? "", item: it,
+          aside: [i === 0 ? "↵" : "", { tab: "⌘↵", pane: "⇧↵", here: "⌘⇧↵" }[it.slot] ?? ""].filter(Boolean).join(" "),
+          run: i === 0 || Boolean(it.slot || it.short),
+        }));
+        const run = rows.filter((r) => r.run);
+        const manage = rows.filter((r) => !r.run);
+        return manage.length ? [{ title: "Run", rows: run }, { title: "Manage", rows: manage }] : [{ rows: run }];
+      },
       onEnter: (r, cx) => this.flow(cx, async (cx) => {
         const did = await r.item.act(cx);
         if (did && !this.closed) {
@@ -399,12 +427,18 @@ export default class Palette extends View {
   }
 
   commandMenu(c, extra = []) {
+    const choose = { label: "Run in new tab in…", icon: "+", color: "create", slot: "choose", short: "choose space", act: async (cx) => {
+      const dest = await this.pickSpace(cx, `${c.label} → Run in new tab in`, c);
+      if (dest) return this.runNewTab(cx, c, dest);
+    } };
+    const tab = { label: "Run in new tab", icon: "+", color: "create", slot: "tab", short: "new tab", act: (cx) => this.runNewTab(cx, c) };
+    const pane = { label: "Run in right pane", icon: "+", color: "create", slot: "pane", short: "right pane", act: (cx) => this.runPane(cx, c) };
+    const here = { label: "Run here", icon: "▸", slot: "here", short: "here", act: (cx) => this.runHere(cx, c) };
     return [
-      { label: "Run here", icon: "▸", act: (cx) => this.runHere(cx, c) },
-      { label: "Run in new tab", icon: "+", color: "create", newTab: true, act: (cx) => this.runNewTab(cx, c) },
-      { label: "Run in new tab in another space…", icon: "+", color: "create", act: async (cx) => {
-        const dest = await this.pickSpace(cx, `${c.label} → Run in another space`);
-        if (dest) return this.runNewTab(cx, c, dest);
+      ...(c.askSpace ? [choose, tab] : [tab, choose]), pane, here,
+      { label: c.askSpace ? "Ask for space: on (turn off)" : "Ask for space: off (turn on)", icon: "✎", act: async () => {
+        await this.save((raw) => C.updateCommand(raw, c.ref, { askSpace: !c.askSpace }));
+        return `✓ "${c.label}" now ${c.askSpace ? "opens a new tab in the same space" : "asks for a space"}`;
       } },
       this.pinToggle("command", c.ref, c.label),
       ...extra,
@@ -420,8 +454,8 @@ export default class Palette extends View {
   savedSpaceMenu(s) {
     const n = s.commands.length;
     return [
-      { label: "Open", icon: "→", act: (cx) => this.openSaved(cx, s, false) },
-      { label: "Open a new copy", icon: "+", color: "create", newTab: true, act: (cx) => this.openSaved(cx, s, true) },
+      { label: "Open", icon: "→", short: "open", act: (cx) => this.openSaved(cx, s, false) },
+      { label: "Open a new copy", icon: "+", color: "create", slot: "tab", short: "new copy", act: (cx) => this.openSaved(cx, s, true) },
       this.pinToggle("space", s.id, s.label),
       { label: "Add command…", icon: "+", color: "create", act: (cx) => this.addCommandFlow(cx, s.id) },
       { label: "Edit…", icon: "✎", act: (cx) => this.editSpace(cx, s) },
@@ -459,11 +493,12 @@ export default class Palette extends View {
   builtinMenu(ref) {
     if (ref === "new-tab") {
       return [
-        { label: "In current space", icon: "+", color: "create", newTab: true, act: () => { this.close(); run("tab.new", this.origin.space ? { space: this.origin.space } : {}); } },
-        { label: "In another space…", icon: "+", color: "create", act: async (cx) => {
-          const dest = await this.pickSpace(cx, "New tab → In another space");
+        { label: "In…", icon: "+", color: "create", slot: "choose", short: "choose space", act: async (cx) => {
+          const dest = await this.pickSpace(cx, "New tab → In");
           if (dest) return this.newTabIn(dest, {});
         } },
+        { label: "In current space", icon: "+", color: "create", slot: "tab", short: "new tab", act: () => { this.close(); run("tab.new", this.origin.space ? { space: this.origin.space } : {}); } },
+        { label: "In right pane", icon: "+", color: "create", slot: "pane", short: "right pane", act: () => { this.close(); run("terminal.open", { place: "right" }); } },
       ];
     }
     if (ref === "new-space") return [{ label: "New space", icon: "+", color: "create", act: (cx) => this.newSpaceFlow(cx) }];
@@ -481,17 +516,10 @@ export default class Palette extends View {
     const pin = row.pin;
     const t = row.target;
     let base = [];
-    if (t?.kind === "command") {
-      base = this.commandMenu(t.command);
-      if (pin.chooseSpace) base = [base[2], base[1], base[0], ...base.slice(3)]; // default follows the pin
-      else if (pin.newTab) base = [base[1], base[0], ...base.slice(2)];
-      base = base.filter((x) => x.label !== "Pin" && x.label !== "Unpin");
-    } else if (t?.kind === "space") base = this.savedSpaceMenu(t.saved).filter((x) => x.label !== "Pin" && x.label !== "Unpin");
+    if (t?.kind === "command") base = this.commandMenu(t.command).filter((x) => x.label !== "Pin" && x.label !== "Unpin");
+    else if (t?.kind === "space") base = this.savedSpaceMenu(t.saved).filter((x) => x.label !== "Pin" && x.label !== "Unpin");
     else if (t?.kind === "host") base = this.hostMenu(t.host).slice(0, 1);
-    else if (t?.kind === "builtin") {
-      base = this.builtinMenu(t.ref);
-      if (pin.chooseSpace && base.length > 1) base = [base[1], base[0], ...base.slice(2)];
-    }
+    else if (t?.kind === "builtin") base = this.builtinMenu(t.ref);
     const name = row.label;
     const q = [
       { label: "Rename…", icon: "✎", act: async (cx) => {
@@ -501,18 +529,6 @@ export default class Palette extends View {
         return `✓ Renamed quick action`;
       } },
     ];
-    if (t?.kind === "command") {
-      q.push({ label: pin.newTab ? "Open in new tab: on (turn off)" : "Open in new tab: off (turn on)", icon: "✎", act: async () => {
-        await this.save((raw) => C.togglePinNewTab(raw, pin.index));
-        return `✓ "${name}" now runs ${pin.newTab ? "here" : "in a new tab"}`;
-      } });
-    }
-    if (t?.kind === "command" || (t?.kind === "builtin" && t.ref === "new-tab")) {
-      q.push({ label: pin.chooseSpace ? "Choose space: on (turn off)" : "Choose space: off (turn on)", icon: "✎", act: async () => {
-        await this.save((raw) => C.togglePinChooseSpace(raw, pin.index));
-        return pin.chooseSpace ? `✓ "${name}" now uses the current space` : `✓ "${name}" now asks for a space`;
-      } });
-    }
     q.push(
       { label: "Move up", icon: "↑", act: async () => { await this.save((raw) => C.movePin(raw, pin.index, -1)); return `✓ Moved "${name}" up`; } },
       { label: "Move down", icon: "↓", act: async () => { await this.save((raw) => C.movePin(raw, pin.index, 1)); return `✓ Moved "${name}" down`; } },
@@ -535,13 +551,17 @@ export default class Palette extends View {
     const busy = !term || !pane || !pane.program?.shell || pane.status != null;
     let force = false;
     if (busy) {
-      const opts = [{ key: "new", icon: "+", color: "create", label: "Run in new tab", value: "new" }];
+      const opts = [
+        { key: "new", icon: "+", color: "create", label: "Run in new tab", value: "new" },
+        { key: "pane", icon: "+", color: "create", label: "Run in right pane", value: "pane" },
+      ];
       if (term) opts.push({ key: "here", icon: "▸", label: "Run here anyway", value: "here" });
       opts.push({ key: "cancel", icon: "", label: "Cancel", value: null });
       const what = term ? `The current pane is running ${pane?.program?.name ?? "something"}` : "There's no terminal here";
       const r = await this.pick(cx, `${c.label} → Run here`, opts, { message: `${what}. Run "${c.command}" anyway?` });
       if (!r?.value) return;
       if (r.value === "new") return this.runNewTab(cx, c);
+      if (r.value === "pane") return this.runPane(cx, c);
       force = true;
     }
     const args = ["send", ...(force ? ["--force"] : []), term, c.command];
@@ -552,6 +572,15 @@ export default class Palette extends View {
       throw Object.assign(new Error(msg), { hint: "Try Run in new tab instead." });
     }
     this.close();
+  }
+
+  /** §6.1 right pane: splits the current tab; a space command starts in its space's folder. */
+  async runPane(cx, c) {
+    const saved = c.space ? C.findSpace(this.cfg, c.space) : null;
+    const folder = saved ? expand(saved.path, this.home) : null;
+    if (saved) await this.checkFolder(cx, saved);
+    this.close();
+    run("terminal.open", { argv: this.toArgv(c.command), place: "right", ...(folder ? { folder } : {}) });
   }
 
   /** dest: { open: SpaceInfo } | { saved: savedSpace } | undefined (the command's own place). */
@@ -628,10 +657,14 @@ export default class Palette extends View {
   }
 
   /** "Another space…": open spaces (current first), then saved spaces that aren't open. */
-  async pickSpace(cx, title) {
+  async pickSpace(cx, title, c) {
     const snap = this.snap();
     const open = snap.spaces.map((sp) => ({ ...openSpaceRow(sp, snap), value: { open: sp } }));
-    open.sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0));
+    // The command's natural space first: its own space, else the current one (§6.1).
+    const own = c?.space ? C.findSpace(this.cfg, c.space) : null;
+    const ownOpen = own && openSpaceFor(own, snap.spaces, this.home);
+    const rank = (r) => (ownOpen ? (r.value.open.id === ownOpen.id ? 1 : 0) : r.current ? 1 : 0);
+    open.sort((a, b) => rank(b) - rank(a));
     const saved = (this.cfg?.spaces ?? []).filter((s) => !openSpaceFor(s, snap.spaces, this.home))
       .map((s) => ({ ...savedSpaceRow(s, snap), value: { saved: s } }));
     const r = await this.pick(cx, title, [{ title: "Open", rows: open }, { title: "Saved", rows: saved }].filter((x) => x.rows.length));
@@ -793,16 +826,22 @@ export default class Palette extends View {
         s.label = v.trim();
       },
       async (s) => {
+        const r = await this.pick(cx, `"${s.label}" → Ask for space?`, [
+          { key: "yes", icon: "+", color: "create", label: "Yes", detail: "Enter shows the space picker", value: true },
+          { key: "no", icon: "+", color: "create", label: "No", detail: "Enter opens a new tab in the same space", value: false },
+        ].sort((a, b) => ((b.value === !s.space) ? 1 : 0) - ((a.value === !s.space) ? 1 : 0)));
+        if (!r) return BACK;
+        s.askSpace = r.value;
+      },
+      async (s) => {
         const r = await this.pick(cx, `Pin "${s.label}" as a quick action?`, [
-          { key: "no", icon: "", label: "No", value: "no" },
-          { key: "here", icon: "▸", label: "Yes, run here", value: "here" },
-          { key: "tab", icon: "+", color: "create", label: "Yes, new tab", value: "tab" },
-          { key: "choose", icon: "+", color: "create", label: "Yes, new tab, choose space", value: "choose" },
+          { key: "no", icon: "", label: "No", value: false },
+          { key: "yes", icon: "+", color: "create", label: "Yes", value: true },
         ]);
         if (!r) return BACK;
         await this.save((raw) => {
-          const ref = C.addCommand(raw, s.space, { label: s.label, command: s.command });
-          if (r.value !== "no") C.addPin(raw, { command: ref, newTab: r.value === "tab", chooseSpace: r.value === "choose" });
+          const ref = C.addCommand(raw, s.space, { label: s.label, command: s.command, askSpace: s.askSpace });
+          if (r.value) C.addPin(raw, { command: ref });
         });
       },
     ]);
@@ -898,28 +937,9 @@ export default class Palette extends View {
         s.ref = r.value;
         label = r.label;
       },
-      async (s) => {
-        let opts;
-        if (s.kind === "command") {
-          opts = [
-            { key: "here", icon: "▸", label: "Run here", value: "here" },
-            { key: "tab", icon: "+", color: "create", label: "New tab", value: "tab" },
-            { key: "choose", icon: "+", color: "create", label: "New tab, choose space", value: "choose" },
-          ];
-        } else if (s.kind === "builtin" && s.ref === "new-tab") {
-          opts = [
-            { key: "current", icon: "+", color: "create", label: "Current space", value: "here" },
-            { key: "choose", icon: "+", color: "create", label: "Choose space", value: "choose" },
-          ];
-        } else return;
-        const r = await this.pick(cx, `"${label}" → Run where?`, opts);
-        if (!r) return BACK;
-        s.newTab = r.value === "tab";
-        s.chooseSpace = r.value === "choose";
-      },
     ]);
     if (!st) return null;
-    await this.save((raw) => C.addPin(raw, { [st.kind]: st.ref, newTab: st.newTab, chooseSpace: st.chooseSpace }));
+    await this.save((raw) => C.addPin(raw, { [st.kind]: st.ref }));
     return `✓ Pinned "${label}"`;
   }
 
@@ -1062,7 +1082,7 @@ export default class Palette extends View {
         if (i < 0) return;
         s.sel = i;
         s.selKey = key;
-        s.onEnter?.(rows[i], cx, false);
+        s.onEnter?.(rows[i], cx, "enter");
         cx.notify();
       })
       .on_item_secondary_click((key, _e, cx) => {
@@ -1139,6 +1159,6 @@ export default class Palette extends View {
         .child(div().text_size(11).text_color(t.dim).child(this.escHint())))
       .child(body)
       .when(Boolean(status), (el) => el.child(div().flex_none().px(4).text_size(12).text_color(status.kind === "error" ? t.ansi1 : t.ansi2).child(status.text)))
-      .child(div().flex_none().pt(6).border_t(1).border_color(t.border).text_size(11).text_color(t.dim).child(s.footer ?? ""));
+      .child(div().flex_none().pt(6).border_t(1).border_color(t.border).text_size(11).text_color(t.dim).child(typeof s.footer === "function" ? s.footer(this.view(s).rows[s.sel]) : s.footer ?? ""));
   }
 }

@@ -5,7 +5,7 @@
 export const DEFAULT_SHORTCUT = "cmd-t";
 const defaultCommands = () => [{ id: "claude", label: "Claude", command: "claude" }];
 export const defaultQuickActions = () => [
-  { command: "claude", label: "New Claude tab", newTab: true },
+  { command: "claude", label: "New Claude tab" },
   { builtin: "new-tab" },
   { builtin: "new-space" },
 ];
@@ -49,7 +49,9 @@ function normCommands(list, where, errors, spaceId) {
       errors.push(`${where}[${i}]: needs a "command"`);
       return;
     }
-    out.push({ src, label: typeof src.label === "string" && src.label ? src.label : cutLabel(src.command), command: src.command, space: spaceId });
+    // §6.1 "ask for space": on for global commands, off for space commands, unless set.
+    const askSpace = typeof src.askSpace === "boolean" ? src.askSpace : !spaceId;
+    out.push({ src, label: typeof src.label === "string" && src.label ? src.label : cutLabel(src.command), command: src.command, space: spaceId, askSpace });
   });
   assignIds(out, (e) => (typeof e.src.label === "string" && e.src.label) || e.command.split(/\s+/)[0]);
   for (const c of out) c.ref = spaceId ? `${spaceId}/${c.id}` : c.id;
@@ -116,8 +118,8 @@ export function normalize(raw) {
       errors.push(`quickActions[${i}]: unknown builtin "${src.builtin}"`);
       return;
     }
-    const chooseSpace = src.chooseSpace === true && (kind === "command" || (kind === "builtin" && src.builtin === "new-tab"));
-    quickActions.push({ src, index: i, kind, ref: src[kind], label: typeof src.label === "string" && src.label ? src.label : null, newTab: src.newTab === true || chooseSpace, chooseSpace });
+    // Pins have no behaviour fields (§6.1); old newTab/chooseSpace are ignored here.
+    quickActions.push({ src, index: i, kind, ref: src[kind], label: typeof src.label === "string" && src.label ? src.label : null });
   });
 
   return { raw, errors, synthetic, shortcut, commands, spaces, quickActions };
@@ -182,7 +184,7 @@ function rawList(raw, spaceId) {
 }
 
 /** Adds a command to `spaceId` (null: global). Returns its ref. */
-export function addCommand(raw, spaceId, { label, command }) {
+export function addCommand(raw, spaceId, { label, command, askSpace }) {
   const list = rawList(raw, spaceId);
   const taken = new Set(normalize(raw)[spaceId ? "spaces" : "commands"]
     .flatMap((x) => (spaceId ? (x.id === spaceId ? x.commands : []) : [x])).map((c) => c.id));
@@ -190,16 +192,18 @@ export function addCommand(raw, spaceId, { label, command }) {
   let id = base;
   for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
   const entry = { id, label: label || cutLabel(command), command };
+  if (typeof askSpace === "boolean") entry.askSpace = askSpace;
   list.push(entry);
   return spaceId ? `${spaceId}/${id}` : id;
 }
 
-export function updateCommand(raw, ref, { label, command }) {
+export function updateCommand(raw, ref, { label, command, askSpace }) {
   const c = commandSrc(raw, ref);
   if (!c) throw new Error(`No command "${ref}"`);
   pinId(c.src, c.id);
   if (label != null) c.src.label = label;
   if (command != null) c.src.command = command;
+  if (typeof askSpace === "boolean") c.src.askSpace = askSpace;
 }
 
 function retargetPins(raw, kind, from, to) {
@@ -285,8 +289,6 @@ export function addPin(raw, pin) {
   const entry = {};
   for (const k of ["builtin", "command", "space", "action"]) if (pin[k]) entry[k] = pin[k];
   if (pin.label) entry.label = pin.label;
-  if (pin.chooseSpace) entry.chooseSpace = true;
-  else if (pin.newTab) entry.newTab = true;
   raw.quickActions.push(entry);
 }
 
@@ -300,9 +302,14 @@ export function unpinItem(raw, kind, ref) {
   raw.quickActions = raw.quickActions.filter((q) => !(isObj(q) && q[kind] === ref));
 }
 
+function dropLegacy(q) {
+  if (isObj(q)) { delete q.newTab; delete q.chooseSpace; }
+}
+
 export function movePin(raw, index, delta) {
   materialize(raw, "quickActions");
   const list = raw.quickActions;
+  dropLegacy(list[index]);
   const to = index + delta;
   if (to < 0 || to >= list.length) return index;
   const [x] = list.splice(index, 1);
@@ -313,30 +320,9 @@ export function movePin(raw, index, delta) {
 export function renamePin(raw, index, label) {
   materialize(raw, "quickActions");
   const q = raw.quickActions[index];
+  dropLegacy(q);
   if (label) q.label = label;
   else delete q.label;
-}
-
-export function togglePinNewTab(raw, index) {
-  materialize(raw, "quickActions");
-  const q = raw.quickActions[index];
-  if (q.newTab || q.chooseSpace) {
-    delete q.newTab;
-    delete q.chooseSpace;
-  } else q.newTab = true;
-}
-
-/** Choose space implies new tab; turning it off keeps the pin in a new tab. */
-export function togglePinChooseSpace(raw, index) {
-  materialize(raw, "quickActions");
-  const q = raw.quickActions[index];
-  if (q.chooseSpace) {
-    delete q.chooseSpace;
-    if (q.command) q.newTab = true;
-  } else {
-    q.chooseSpace = true;
-    delete q.newTab;
-  }
 }
 
 export function resetPins(raw) {

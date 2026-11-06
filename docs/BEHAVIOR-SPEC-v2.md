@@ -18,18 +18,19 @@ tags: [spec, command-palette, ux]
 | **Current**            | The pane, tab or space that had focus when the palette opened                                                                                                                                                                                                                                   |
 | **Saved space**        | A label + folder, with optional **space commands**                                                                                                                                                                                                                                              |
 | **Saved command**      | A label + command text. **Global** (shown everywhere; agent launchers like `claude` are global commands) or a **space command** (shown only in its space, §6.3)                                                                                                                                 |
-| **Quick action**       | An ordered pin to a built-in (`New tab`, `New space`), saved command, saved space or host action. Pins are references, so editing an item updates its pin. A pin can have its own label; command pins can **open in new tab** (off by default); command and `New tab` pins can **choose space** (off by default, implies new tab). Running agents and open spaces can't be pinned |
+| **Quick action**       | An ordered pin to a built-in (`New tab`, `New space`), saved command, saved space or host action. Pins are references, so editing an item updates its pin. A pin can have its own label and otherwise behaves exactly like the item it points to (§6.1). Running agents and open spaces can't be pinned |
 | **Host action**        | One of the host app's own operations, e.g. "Pane: Split"                                                                                                                                                                                                                                        |
 
-Default quick actions: `+ New Claude tab` (`claude`, new tab) · `+ New tab` · `+ New space`.
+Default quick actions: `+ New Claude tab` (`claude`) · `+ New tab` · `+ New space`.
 
 ## 2. Principles
 
 1. **One shortcut, one list** of every target and action, fuzzy-searchable.
-2. **The common case is two keystrokes:** shortcut, Enter → new agent tab. The current item is sorted first and is the default.
-3. **Ask only what's needed;** prefill what can be guessed.
-4. **Safe by default:** anything that closes, removes, stops, disables or unlinks asks first (`No` is the default, Esc means No). A command is never typed into a busy pane without asking.
-5. **Configurable in place.** The config file is optional.
+2. **The common case is two keystrokes:** shortcut, Enter → new agent tab. The current item is sorted first and is the default. Global commands ask for a space on Enter by default (§6.1, the *ask for space* setting), so the default `+ New Claude tab` is shortcut, Enter, Enter (the picker lists the current space first); ⌘Enter is the one-step new tab, and turning *ask for space* off on a command makes Enter the one-step new tab.
+3. **One set of run keys everywhere:** Enter / ⌘ / ⇧ / ⌘⇧ + Enter mean the same four destinations on every row that runs something (§6.1).
+4. **Ask only what's needed;** prefill what can be guessed.
+5. **Safe by default:** anything that closes, removes, stops, disables or unlinks asks first (`No` is the default, Esc means No). A command is never typed into a busy pane without asking.
+6. **Configurable in place.** The config file is optional.
 
 ## 3. Opening and closing
 
@@ -47,7 +48,7 @@ Command Palette
 > query_
 
 Quick Actions
-› + New Claude tab                       new tab · claude
+› + New Claude tab                       claude
   + New tab
   + New space
 Agents
@@ -67,10 +68,10 @@ Settings
 Pane
   …
 
-Enter run · ⌘Enter new tab · Tab options · Esc back           42/120
+Enter choose space · ⌘↵ new tab · ⇧↵ right pane · ⌘⇧↵ here · Tab more    42/120
 ```
 
-`42/120` = rows matching the search / all rows.
+`42/120` = rows matching the search / all rows. The key hints in the footer follow the selected row: only the keys that do something on it are shown (a saved space shows `Enter open · ⌘↵ new copy · Tab more`).
 
 ### 4.1 Sections
 
@@ -101,40 +102,57 @@ Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, 
 | type, `Backspace`, `Ctrl+U` | search, prompts | Edit / clear |
 | `↑` `↓` `Ctrl+P` `Ctrl+N` `PgUp` `PgDn` | lists | Move. `↑` on the first row goes to the last and `↓` on the last goes to the first; `PgUp`/`PgDn` stop at the ends |
 | `←` `→` `Ctrl+A` `Ctrl+E` | text prompts | Move the cursor |
-| `Enter` | anywhere | Do the default (first item of the row's menu). In Manage quick actions, Enter opens the pin's options instead |
-| `⌘Enter` / `Alt+Enter` | commands | Run in a new tab (other rows: same as Enter) |
-| `Tab` | rows | Options menu |
+| `Enter` | anywhere | Do the default (§6.1: *choose space* on runnable rows, else the first item of the row's menu). In Manage quick actions, Enter opens the pin's options instead |
+| `⌘Enter` / `Alt+Enter` | runnable rows | New tab in the same space |
+| `Shift+Enter` | runnable rows | Right pane of the current tab |
+| `⌘Shift+Enter` | runnable rows | Here: type into the current terminal |
+| `Tab` | rows | More options: every action of the row, each with its shortcut shown on the right |
 | `Shift+↑↓` | Manage quick actions | Move a pin (saves immediately) |
 | `Esc` | anywhere | Back one step: clear the search → previous screen (search and selection restored) → close. The header always names what Esc will do now ("Esc clear search", "Esc back to <screen>", "Esc close") |
 | `Ctrl+C` | anywhere | Close |
-| click / right-click | rows | Same as `Enter` / `Tab` |
+| click / right-click | rows | Same as plain `Enter` / `Tab`. Modifiers don't apply to clicks |
+
+On rows that don't run anything (settings, open spaces, agents, host actions, pickers, prompts) the modifier + Enter keys do the same as Enter. `Alt` is the stand-in for `⌘` (§3); `Shift`/`⌘Shift` + Enter are not used by the palette's text editing.
 
 ## 6. Rows
 
 ### 6.1 What each row does
 
+**Run destinations** — one set of keys for every row that runs something (saved commands, command pins, `New tab`):
+
+| Key | Destination | Menu item (shortcut shown on the right) |
+| --- | --- | --- |
+| `Enter` | **Choose space** when the command's *ask for space* is on (default for global commands): picker, then a new tab there. When it is off (default for space commands): same as ⌘Enter | `Run in new tab in…` `↵` (or `Run in new tab` `↵ ⌘↵` when off) |
+| `⌘Enter` / `Alt+Enter` | **New tab, same space:** the current space (global command) or the command's own space (space command) | `Run in new tab` `⌘↵` |
+| `Shift+Enter` | **Right pane:** splits the current tab to the right and starts it there (`terminal.open place: right`) | `Run in right pane` `⇧↵` |
+| `⌘Shift+Enter` | **Here:** types into the current terminal (§6.2 guards busy panes) | `Run here` `⌘⇧↵` |
+
+The Tab menu has two sections: **Run** (the four destinations, in this order; on other rows the actions that do something: Open, Switch to, Focus, Run…) and **Manage** (Ask for space, Pin/Unpin, Edit…, Remove…, Move to…, Rename, Unpin…; no shortcut). A row with nothing to manage shows one section without headers. **Ask for space** is a setting of each saved command, not of pins: *on* → Enter shows the picker, *off* → Enter runs in a new tab in the same space (the current space, or the command's own space for a space command). Default: on for global commands, off for space commands. It is changed from the command's menu (`Ask for space: on (turn off)`), and *Run in new tab in…* stays in the menu either way so a space can always be chosen. Pins have no settings: a pin behaves exactly like the command it points to. `New tab` always asks (it has no flag).
+
+**Keys that don't work (tried in the real window):** `Ctrl+Enter` and `Opt+Enter` don't reach the palette, so *Here* is `⌘Shift+Enter`, checked before `Shift+Enter`.
+
 **Bold** = Enter. Remove/Close items confirm first.
 
 | Row | Options menu (`Tab` key) | Notes |
 | --- | --- | --- |
-| Saved command | **Run here** · Run in new tab · Run in new tab in another space… · Pin/Unpin · Edit… · Remove… | Run here types into the current pane; the tab keeps its name. A new tab is not renamed (herdr-app's automatic title stays) and opens in the current space (global) or the command's own space (space command). If that space isn't open, it's opened and its first tab is used. |
-| New tab | **In current space** · In another space… | Opens an empty tab |
+| Saved command | **Run in new tab in…** (or **Run in new tab** when *ask for space* is off) · Run in new tab · Run in right pane · Run here · Ask for space: on/off · Pin/Unpin · Edit… · Remove… | The four destinations above. A new tab is not renamed (herdr-app's automatic title stays). The picker has the command's natural space first (the current space for a global command, its own space for a space command when that space is open; if it isn't open, the current space is first and the saved space is listed under Saved). If the chosen space isn't open, it's opened and its first tab is used. Right pane and Here always act on the current tab/pane (if the focus isn't on a terminal pane, herdr-app can't split it: the key does nothing); a space command's right pane checks the folder like a new tab does (`Folder not found…`); a space command's right pane starts in the command's space folder |
+| New tab | **In…** (choose space) · In current space · In right pane | Opens an empty tab / pane. No *Here* (nothing to type): `⌘Shift+Enter` is ignored |
 | New space | — | Asks for a folder (prefilled with the current one), creates the space and switches to it |
 | Saved space | **Open** · Open a new copy · Pin/Unpin · Add command… · Edit… · Remove… | Open switches to it if open, else creates it at its folder. Missing folder → `Folder not found: <path>` with Edit… / Remove / Back |
 | Open space | **Switch to** · Close… | |
 | Agent | **Focus** · Close pane… | |
-| Quick action | The item's menu + Rename · Toggle *open in new tab* · Toggle *choose space* · Move up/down · Unpin | With *choose space* on, Enter shows the space picker below and runs the command (or opens the empty tab) in a new tab there; `⌘Enter`/`Alt+Enter` skips the picker and uses the current space. Turning *open in new tab* off also turns *choose space* off |
+| Quick action | The item's menu + Rename · Move up/down · Unpin | Identical to the item it points to, same keys, no per-pin flags (`newTab`/`chooseSpace` are gone; *ask for space* belongs to the command) |
 | Host action | **Run** · Pin/Unpin | §6.4 |
 
-"Another space…" and *choose space* pickers list the current space first, then the other open spaces, then saved spaces that aren't open. Opening a saved space creates it and runs the command in its first tab.
+Space pickers (*Run in new tab in…*, *New tab → In…*) list the current space first, then the other open spaces, then saved spaces that aren't open. Opening a saved space creates it and runs the command in its first tab.
 
-**Running a command in a new tab:** plain text (`pnpm dev -p 3001`) is started directly, split on spaces; text with shell syntax (pipes, `&&`, quotes, `$`, `~`…) runs through the user's shell (`$SHELL -ic`). Shell functions work either way; aliases only in the second form.
+**Running a command in a new tab or pane:** plain text (`pnpm dev -p 3001`) is started directly, split on spaces; text with shell syntax (pipes, `&&`, quotes, `$`, `~`…) runs through the user's shell (`$SHELL -ic`). Shell functions work either way; aliases only in the second form.
 
 **Removing** a saved command or space from the palette also removes its pins (removing a space removes pins to its commands too). `⚠ missing` pins only come from hand-edits.
 
 ### 6.2 Busy pane guard
 
-If the current pane is running an agent or another foreground process, Run here asks first: **Run in new tab** · Run here anyway · Cancel.
+If the current pane is running an agent or another foreground process, *Here* (`⌘Shift+Enter`) asks first: **Run in new tab** · Run in right pane · Run here anyway · Cancel. Right pane, new tab and choose space never ask: they start a fresh terminal.
 
 ### 6.3 Which space you're in
 
@@ -149,7 +167,7 @@ The saved space whose folder contains the current pane's working folder (deepest
 
 ### 6.5 Shared screens
 
-- **Picker:** works like the main list, titled with a breadcrumb, e.g. `Claude → Run in another space`.
+- **Picker:** works like the main list, titled with a breadcrumb, e.g. `Claude → Run in new tab in`.
 - **Text prompt:** one line plus a help line with an example. Invalid input shows an inline note instead of cancelling.
 - **Confirm:** the title states the consequence, e.g. `Remove "web" and its 2 commands?`.
 - **Status line:** a one-line notice above the footer, e.g. `✓ Added "Dev server" to web`. It clears on the next keystroke.
@@ -160,8 +178,8 @@ The saved space whose folder contains the current pane's working folder (deepest
 | Row | Flow |
 | --- | --- |
 | `+ Add space…` | Folder (current) → label (folder name) |
-| `+ Add command…` | Scope (This space / Global / other space) → command → label (the command, cut to ~30 characters) → Pin? (No / Yes, run here / Yes, new tab / Yes, new tab, choose space) |
-| `✎ Manage quick actions…` | Pins in order, with the quick-action menu; `+ Add quick action…` (Built-ins / Commands / Spaces / Host actions, then for commands: run here / new tab / new tab, choose space?; for `New tab`: current space / choose space?). A pin with *choose space* shows `choose space` in its detail; `↺ Reset to defaults`. A pin whose item was deleted shows here as `⚠ missing: <label>`, never in the main list |
+| `+ Add command…` | Scope (This space / Global / other space) → command → label (the command, cut to ~30 characters) → Ask for space? (Yes / No; prefilled Yes for Global, No for a space) → Pin? (No / Yes) |
+| `✎ Manage quick actions…` | Pins in order, with the quick-action menu; `+ Add quick action…` (Built-ins / Commands / Spaces / Host actions, then no further questions: a pin has no options); `↺ Reset to defaults`. A pin whose item was deleted shows here as `⚠ missing: <label>`, never in the main list |
 | `✎ Manage commands…` | All commands, grouped Global / per space; the menu adds **Move to…** |
 | `✎ Shortcut…` | Record a new shortcut |
 | `✎ Open config file` | Opens it in `$EDITOR` in a new tab |
@@ -173,7 +191,7 @@ Settings changes refresh the list in place, show a status line and keep the pale
 ```text
 Manage quick actions
 
-› 1  + New Claude tab          new tab · claude
+› 1  + New Claude tab          claude
   2  + New tab                 built-in
   3  + New space               built-in
   4  ▸ Run tests               here · pnpm test
@@ -192,7 +210,7 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
   "shortcut": "cmd+t",
   "commands": [
     { "id": "claude", "label": "Claude", "command": "claude" },
-    { "id": "codex",  "label": "Codex",  "command": "codex" }
+    { "id": "codex",  "label": "Codex",  "command": "codex", "askSpace": false }
   ],
   "spaces": [
     {
@@ -205,8 +223,8 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
     { "path": "~/code/api" }
   ],
   "quickActions": [
-    { "command": "claude", "label": "New Claude tab", "newTab": true },
-    { "command": "codex", "label": "Codex in…", "chooseSpace": true },
+    { "command": "claude", "label": "New Claude tab" },
+    { "command": "codex", "label": "Codex in…" },
     { "builtin": "new-tab" },
     { "builtin": "new-space" },
     { "command": "web/test" },
@@ -216,7 +234,7 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
 }
 ```
 
-- **Defaults:** missing `commands` → just Claude; missing `quickActions` → the three defaults; `[]` → empty. Labels (taken from the folder name or the command text), `newTab` (false), `chooseSpace` (false; `true` implies `newTab`, ignored on pins other than commands and `new-tab`) and `id`s (created by the palette) can be left out.
+- **Defaults:** missing `commands` → just Claude; missing `quickActions` → the three defaults; `[]` → empty. Labels (taken from the folder name or the command text) and `id`s (created by the palette) can be left out. Moving a command to another scope keeps an explicit `askSpace`; an implicit one follows the new scope's default. Commands take an optional `askSpace` (true for global commands, false for space commands when missing). Pins have no behaviour fields. Older files with `newTab` / `chooseSpace` on a pin are still read, the fields are ignored (the item's own Enter behaviour applies) and they are dropped the next time the palette rewrites that pin.
 - **References:** global commands by `id`, space commands by `space-id/command-id`.
 - **Errors:** a broken file shows one `⚠ Config error` row, with details and Open config file. Incomplete entries are skipped and listed there too. Everything else keeps working.
 - **Preserving the file:** writes keep unknown keys and the existing order. If the file changed on disk since the palette read it, the write is refused, the file is re-read and the user is told to try again. A broken file is never written; fix it first.
@@ -234,13 +252,15 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-laun
 - [ ] Paste (⌘V) in the search box and prompts (they're drawn by the palette, not a native input)
 - [ ] Remote spaces (on another machine) as saved spaces; today folder checks and matching are local only
 
+
 ## 10. To do
 
 Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each item gets settled here in the spec before it's built.
 
-- [ ] **T1** Hotkey to choose where a command runs: in a new tab (New Claude tab) or in the current pane (Claude in this pane), maybe Enter with ⌥ or ⇧
+- [x] **T1** Hotkey to choose where a command runs: settled as the four run destinations in §6.1 (Enter choose space · ⌘ new tab · ⇧ right pane · ⌘⇧ here); built in T9. Ctrl and Opt + Enter don't work, so *here* is ⌘Shift+Enter
+- [x] **T9** Build §6.1: unified run keys, shortcut column in the Tab menu, per-row footer hints, right pane (`terminal.open place: right`), remove the pin `newTab`/`chooseSpace` flags and their menu toggles (old fields ignored on read), add the per-command `askSpace` setting and its menu toggle
 - [ ] **T2** Hotkey to jump to a row quickly
-- [ ] **T3** Hint showing what Enter will do on the selected row
+- [x] **T3** Hint showing what Enter will do on the selected row: the per-row footer hints in §4 cover it (built with T9)
 - [x] **T4** Esc goes back to the previous screen (header now names what Esc does, and the overlay is a `window` so Esc reaches the mod; see §3, §5; tried in the real window)
 - [ ] **T5** Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
 - [ ] **T6** Rank commands above spaces in search results

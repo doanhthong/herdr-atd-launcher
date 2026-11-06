@@ -44,7 +44,7 @@ test("edits keep unknown keys and order", () => {
 });
 test("pinning writes the id; removing unpins", () => {
   const raw = { commands: [{ label: "Codex", command: "codex" }] };
-  C.addPin(raw, { command: "codex", newTab: true });
+  C.addPin(raw, { command: "codex" });
   assert.equal(raw.commands[0].id, "codex");
   assert.equal(raw.quickActions.length, 4);
   C.removeCommand(raw, "codex");
@@ -70,20 +70,27 @@ test("movePin / reset", () => {
   C.resetPins(raw);
   assert.equal(raw.quickActions, undefined);
 });
-test("choose space: parse, add, toggles", () => {
-  const c = C.parseConfig(JSON.stringify({ quickActions: [{ command: "claude", chooseSpace: true }, { builtin: "new-tab", chooseSpace: true }, { builtin: "new-space", chooseSpace: true }] }));
-  assert.deepEqual(c.quickActions.map((q) => [q.chooseSpace, q.newTab]), [[true, true], [true, true], [false, false]]);
-  const raw = { quickActions: [{ command: "claude", newTab: true }, { builtin: "new-tab" }] };
-  C.togglePinChooseSpace(raw, 0);
-  assert.deepEqual(raw.quickActions[0], { command: "claude", chooseSpace: true });
-  C.togglePinChooseSpace(raw, 0);
-  assert.deepEqual(raw.quickActions[0], { command: "claude", newTab: true });
-  C.togglePinChooseSpace(raw, 0);
-  C.togglePinNewTab(raw, 0);
-  assert.deepEqual(raw.quickActions[0], { command: "claude" });
-  C.togglePinChooseSpace(raw, 1);
-  C.togglePinChooseSpace(raw, 1);
-  assert.deepEqual(raw.quickActions[1], { builtin: "new-tab" });
+test("askSpace: defaults, explicit value, edit", () => {
+  const c = C.parseConfig(JSON.stringify({
+    commands: [{ id: "a", command: "a" }, { id: "b", command: "b", askSpace: false }],
+    spaces: [{ id: "web", path: "~/web", commands: [{ id: "t", command: "t" }, { id: "u", command: "u", askSpace: true }] }],
+  }));
+  assert.deepEqual(c.commands.map((x) => x.askSpace), [true, false]);
+  assert.deepEqual(c.spaces[0].commands.map((x) => x.askSpace), [false, true]);
+  const raw = c.raw;
+  C.updateCommand(raw, "a", { askSpace: false });
+  assert.equal(raw.commands[0].askSpace, false);
+  const ref = C.addCommand(raw, null, { label: "X", command: "x", askSpace: false });
+  assert.equal(C.findCommand(C.normalize(raw), ref).askSpace, false);
+});
+test("pins have no behaviour fields; old ones are ignored and dropped on rewrite", () => {
+  const raw = { quickActions: [{ command: "claude", newTab: true }, { builtin: "new-tab", chooseSpace: true }] };
+  const c = C.normalize(raw);
+  assert.equal(c.quickActions[0].newTab, undefined);
   C.addPin(raw, { command: "claude", newTab: true, chooseSpace: true });
-  assert.deepEqual(raw.quickActions.at(-1), { command: "claude", chooseSpace: true });
+  assert.deepEqual(raw.quickActions.at(-1), { command: "claude" });
+  C.renamePin(raw, 0, "Claude");
+  assert.deepEqual(raw.quickActions[0], { command: "claude", label: "Claude" });
+  C.movePin(raw, 1, 1);
+  assert.deepEqual(raw.quickActions[2], { builtin: "new-tab" });
 });
