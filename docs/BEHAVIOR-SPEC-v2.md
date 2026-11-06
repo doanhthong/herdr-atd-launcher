@@ -117,7 +117,7 @@ Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, 
 
 | Row | Options menu (`Tab` key) | Notes |
 | --- | --- | --- |
-| Saved command | **Run here** · Run in new tab · Run in new tab in another space… · Pin/Unpin · Edit… · Remove… | Run here types into the current pane; the tab keeps its name. A new tab is named after the command and opens in the current space (global) or the command's own space (space command). If that space isn't open, it's opened and its first tab is used. |
+| Saved command | **Run here** · Run in new tab · Run in new tab in another space… · Pin/Unpin · Edit… · Remove… | Run here types into the current pane; the tab keeps its name. A new tab is not renamed (herdr-app's automatic title stays) and opens in the current space (global) or the command's own space (space command). If that space isn't open, it's opened and its first tab is used. |
 | New tab | **In current space** · In another space… | Opens an empty tab |
 | New space | — | Asks for a folder (prefilled with the current one), creates the space and switches to it |
 | Saved space | **Open** · Open a new copy · Pin/Unpin · Add command… · Edit… · Remove… | Open switches to it if open, else creates it at its folder. Missing folder → `Folder not found: <path>` with Edit… / Remove / Back |
@@ -245,6 +245,7 @@ Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each
 - [ ] **T5** Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
 - [ ] **T6** Rank commands above spaces in search results
 - [ ] **T7** (minor) Quick actions can start Claude in a subfolder of a space: when in space `x`, run Claude in `x/sub-folder` and open it as a new Claude tab from the palette (today this is only possible with ⌘Enter)
+- [x] **T8** Running a command in a new tab (including quick actions) doesn't rename the tab, so herdr-app's automatic title stays; see §6 saved command
 
 ### Bugs
 

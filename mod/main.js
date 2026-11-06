@@ -566,7 +566,7 @@ export default class Palette extends View {
       if (!dest) dest = { current: true };
     }
     if (dest.saved && !dest.open) await this.checkFolder(cx, dest.saved);
-    return this.newTabIn(dest, { name: c.label, argv });
+    return this.newTabIn(dest, { argv });
   }
 
   newTabIn(dest, extra) {
