@@ -203,7 +203,10 @@ Enter options · Shift+↑↓ move · Esc done
 
 ## 8. Configuration file
 
-Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/atd-launcher/config.json` and is re-read every time the palette opens. Open config file creates it with the defaults if it's missing.
+Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/herdr-app/atd-launcher.json` (herdr-app's folder, so `$HERDR_APP_HOME/atd-launcher.json` when that is set) and is re-read every time the palette opens. Open config file creates it with the defaults if it's missing.
+
+- **Location (decided, T5):** next to herdr-app's own hand-edited files (`keys.json`, `settings.json`), which is also where most community mods put theirs; one folder to sync. The name carries the mod's name so it can't clash with another mod's file. Not inside `mods/atd-launcher/` (saving there reloads the mod, and reinstalling or syncing the mod replaces the folder), and not in herdr-app's mod state (`localStorage` / `shared`, written by herdr-app, not for hand-editing). State the palette writes itself, like recent-use ranking, goes in `localStorage` instead.
+- **Move from the old location:** the file used to be `~/.config/atd-launcher/config.json`. When the palette opens and the new file is missing but the old one exists, it copies the old file to the new place and shows the status line `✓ Config moved to ~/.config/herdr-app/atd-launcher.json; the old file is no longer read`. The old file is left alone, never read again.
 
 ```json
 {
@@ -262,7 +265,7 @@ Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each
 - [ ] **T2** Hotkey to jump to a row quickly
 - [x] **T3** Hint showing what Enter will do on the selected row: the per-row footer hints in §4 cover it (built with T9)
 - [x] **T4** Esc goes back to the previous screen (header now names what Esc does, and the overlay is a `window` so Esc reaches the mod; see §3, §5; tried in the real window)
-- [ ] **T5** Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config
+- [x] **T5** Check why the config is stored at `~/.config/atd-launcher/` rather than with herdr-app's own config: no reason (left over from the old herdr TUI plugin); moved to `~/.config/herdr-app/atd-launcher.json` with a one-time copy, see §8
 - [x] **T6** Rank commands above spaces in search results
 - [ ] **T7** (minor) Quick actions can start Claude in a subfolder of a space: when in space `x`, run Claude in `x/sub-folder` and open it as a new Claude tab from the palette (today this is only possible with ⌘Enter)
 - [x] **T8** Running a command in a new tab (including quick actions) doesn't rename the tab, so herdr-app's automatic title stays; see §6 saved command

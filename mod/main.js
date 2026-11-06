@@ -29,8 +29,9 @@ export default class Palette extends View {
     cx.timer.after(300, () => this.handle.focus());
     this.scroll = VirtualListScrollHandle.new();
     this.home = home();
-    this.configDir = `${this.home}/.config/atd-launcher`;
-    this.configPath = `${this.configDir}/config.json`;
+    this.configDir = appHome();
+    this.configPath = `${this.configDir}/atd-launcher.json`;
+    this.oldConfigPath = `${this.home}/.config/atd-launcher/config.json`; // before T5 (§8)
     this.cfg = null; // null until read: config sections show Loading…
     this.cfgText = null;
     this.status = null;
@@ -45,6 +46,7 @@ export default class Palette extends View {
         const r = await exec("sh", ["-c", 'printf %s "$SHELL"']);
         if (r.code === 0 && r.stdout.trim()) this.shell = r.stdout.trim();
       } catch {}
+      await this.moveOldConfig().catch(() => {});
       await this.loadConfig();
       await this.syncShortcut().catch(() => {});
       cx.notify();
@@ -52,6 +54,15 @@ export default class Palette extends View {
   }
 
   // ---- config I/O --------------------------------------------------------------
+
+  // §8: copy the pre-T5 file to the new place once; the old file is left alone.
+  async moveOldConfig() {
+    if ((await readTextFile(this.configPath).catch(() => null)) != null) return;
+    const old = await readTextFile(this.oldConfigPath).catch(() => null);
+    if (old == null) return;
+    await writeTextFile(this.configPath, old, null);
+    this.setStatus(`✓ Config moved to ${tilde(this.configPath, this.home)}; the old file is no longer read`);
+  }
 
   async loadConfig() {
     let text = null;
@@ -71,7 +82,6 @@ export default class Palette extends View {
     const raw = onDisk && onDisk.trim() ? JSON.parse(onDisk) : {};
     const out = edit(raw);
     const text = C.serialize(raw);
-    await exec("mkdir", ["-p", this.configDir]);
     await writeTextFile(this.configPath, text, onDisk);
     this.cfgText = text;
     this.cfg = C.parseConfig(text);
@@ -1013,7 +1023,6 @@ export default class Palette extends View {
   async openConfigFile() {
     const exists = await readTextFile(this.configPath).catch(() => null);
     if (exists == null) {
-      await exec("mkdir", ["-p", this.configDir]);
       const starter = { shortcut: C.DEFAULT_SHORTCUT, commands: [{ id: "claude", label: "Claude", command: "claude" }], spaces: [], quickActions: C.defaultQuickActions() };
       await writeTextFile(this.configPath, C.serialize(starter), null);
     }
