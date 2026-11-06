@@ -31,7 +31,7 @@ Default quick actions: `+ New Claude tab` (`claude`) · `+ New tab` · `+ New sp
 3. **One set of run keys everywhere:** Enter / ⌘ / ⇧ / ⌘⇧ + Enter mean the same four destinations on every row that runs something (§6.1).
 4. **Ask only what's needed;** prefill what can be guessed.
 5. **Safe by default:** anything that closes, removes, stops, disables or unlinks asks first (`No` is the default, Esc means No). A command is never typed into a busy pane without asking.
-6. **Configurable in place.** The config file is optional.
+6. **Configurable in place.** A config file is recommended (it's how the palette knows your spaces and commands), but the palette still works without one.
 
 ## 3. Opening and closing
 
@@ -204,7 +204,7 @@ Enter options · Shift+↑↓ move · Esc done
 
 ## 8. Configuration file
 
-Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/herdr-app/atd-launcher.json` (herdr-app's folder, so `$HERDR_APP_HOME/atd-launcher.json` when that is set) and is re-read every time the palette opens. Open config file creates it with the defaults if it's missing.
+Recommended, and part of the install guide (README): start from `examples/atd-launcher.example.json`. Without it the palette runs on the defaults below. For hand-editing and syncing dotfiles. It lives at `~/.config/herdr-app/atd-launcher.json` (herdr-app's folder, so `$HERDR_APP_HOME/atd-launcher.json` when that is set) and is re-read every time the palette opens. Open config file creates it with the defaults if it's missing.
 
 - **Location (decided, T5):** next to herdr-app's own hand-edited files (`keys.json`, `settings.json`), which is also where most community mods put theirs; one folder to sync. The name carries the mod's name so it can't clash with another mod's file. Not inside `mods/atd-launcher/` (saving there reloads the mod, and reinstalling or syncing the mod replaces the folder), and not in herdr-app's mod state (`localStorage` / `shared`, written by herdr-app, not for hand-editing). State the palette writes itself, like recent-use ranking, goes in `localStorage` instead.
 - **Move from the old location:** the file used to be `~/.config/atd-launcher/config.json`. When the palette opens and the new file is missing but the old one exists, it copies the old file to the new place and shows the status line `✓ Config moved to ~/.config/herdr-app/atd-launcher.json; the old file is no longer read`. The old file is left alone, never read again.
