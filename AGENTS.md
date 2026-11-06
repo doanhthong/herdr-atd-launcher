@@ -10,6 +10,7 @@ A command palette for **herdr-app**, written as a herdr-app mod named `atd-launc
 2. **Code that disagrees with the spec is a bug**, unless herdr-app makes the spec impossible. In that case write the difference into the spec (next to the behavior it changes) rather than only in code or here.
 3. Open questions go to the user; record the answer in the spec. Don't leave decisions only in code comments or chat.
 4. This file is about *how to work on it*; it never restates behavior.
+5. Bump `updated:` in the spec's frontmatter to today's date whenever the spec changes.
 
 ## Herdr background
 
