@@ -273,7 +273,7 @@ export default class Palette extends View {
     const n = rows.length;
     const move = (d) => {
       if (!n) return;
-      s.sel = Math.max(0, Math.min(n - 1, s.sel + d));
+      s.sel = Math.abs(d) === 1 ? (s.sel + d + n) % n : Math.max(0, Math.min(n - 1, s.sel + d));
       s.selKey = rows[s.sel]?.key ?? null;
       this.scrollToSel(d);
     };

@@ -99,7 +99,7 @@ Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, 
 | Key | Where | Action |
 | --- | --- | --- |
 | type, `Backspace`, `Ctrl+U` | search, prompts | Edit / clear |
-| `↑` `↓` `Ctrl+P` `Ctrl+N` `PgUp` `PgDn` | lists | Move |
+| `↑` `↓` `Ctrl+P` `Ctrl+N` `PgUp` `PgDn` | lists | Move. `↑` on the first row goes to the last and `↓` on the last goes to the first; `PgUp`/`PgDn` stop at the ends |
 | `←` `→` `Ctrl+A` `Ctrl+E` | text prompts | Move the cursor |
 | `Enter` | anywhere | Do the default (first item of the row's menu). In Manage quick actions, Enter opens the pin's options instead |
 | `⌘Enter` / `Alt+Enter` | commands | Run in a new tab (other rows: same as Enter) |
