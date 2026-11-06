@@ -211,7 +211,7 @@ Optional; for hand-editing and syncing dotfiles. It lives at `~/.config/herdr-ap
 
 ```json
 {
-  "shortcut": "cmd+t",
+  "shortcut": "cmd-t",
   "commands": [
     { "id": "claude", "label": "Claude", "command": "claude" },
     { "id": "codex",  "label": "Codex",  "command": "codex", "askSpace": false }

@@ -1,0 +1,24 @@
+{
+  "shortcut": "cmd-t",
+  "commands": [
+    { "id": "claude", "label": "Claude", "command": "claude" },
+    { "id": "codex", "label": "Codex", "command": "codex", "askSpace": false }
+  ],
+  "spaces": [
+    {
+      "id": "web", "label": "web", "path": "~/code/web",
+      "commands": [
+        { "id": "dev", "label": "Dev server", "command": "pnpm dev" },
+        { "id": "test", "label": "Run tests", "command": "pnpm test --watch" }
+      ]
+    },
+    { "path": "~/code/api" }
+  ],
+  "quickActions": [
+    { "command": "claude", "label": "New Claude tab" },
+    { "builtin": "new-tab" },
+    { "builtin": "new-space" },
+    { "command": "web/test" },
+    { "space": "api" }
+  ]
+}
