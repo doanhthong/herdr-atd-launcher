@@ -160,18 +160,18 @@ export function buildMain(snap, cfg, ctx) {
   agentRows.sort((x, y) => rank(x) - rank(y));
   add("Agents", "Agent", agentRows);
 
-  // 3. Spaces: open spaces (current first), then all saved spaces.
-  const open = snap.spaces.map((sp) => openSpaceRow(sp, snap));
-  open.sort((x, y) => (y.current ? 1 : 0) - (x.current ? 1 : 0));
-  const saved = cfg ? cfg.spaces.map((s) => savedSpaceRow(s, snap)) : [];
-  add("Spaces", "Space", [...open, ...saved], { loading: !cfg && !open.length });
-
-  // 4. Commands: the current space's, then global.
+  // 3. Commands: the current space's, then global.
   if (!cfg) add("Commands", "Command", [], { loading: true });
   else {
     const here = ctx.currentSaved ? ctx.currentSaved.commands : [];
     add("Commands", "Command", [...here, ...cfg.commands].map((c) => commandRow(cfg, c)));
   }
+
+  // 4. Spaces: open spaces (current first), then all saved spaces.
+  const open = snap.spaces.map((sp) => openSpaceRow(sp, snap));
+  open.sort((x, y) => (y.current ? 1 : 0) - (x.current ? 1 : 0));
+  const saved = cfg ? cfg.spaces.map((s) => savedSpaceRow(s, snap)) : [];
+  add("Spaces", "Space", [...open, ...saved], { loading: !cfg && !open.length });
 
   // 5. Settings
   const settingRows = [];

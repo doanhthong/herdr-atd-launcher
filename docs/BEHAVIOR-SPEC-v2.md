@@ -1,7 +1,7 @@
 ---
 title: Command Palette — Behavior & Experience Spec (v2)
 status: draft for review
-updated: 2026-11-06
+updated: 2026-11-08
 tags: [spec, command-palette, ux]
 ---
 
@@ -55,15 +55,15 @@ Quick Actions
 Agents
   ◐ api        codex — add rate limit    waiting for input
   ● web        claude — fix login bug    working
+Commands
+  ▸ Dev server                           web · pnpm dev -p 3001
+  ▸ Codex                                global · codex
 Spaces
   ● web                                  ~/code/web
   → api                                  ~/code/api
   → web                                  ~/code/web    (saved)
   → api                                  ~/code/api    (saved)
   + docs                                 ~/code/docs   (saved)
-Commands
-  ▸ Dev server                           web · pnpm dev -p 3001
-  ▸ Codex                                global · codex
 Settings
   …
 Pane
@@ -80,8 +80,8 @@ Shown in this order; empty sections are hidden. Each section puts the current it
 
 1. **Quick Actions:** the user's pins, in order. A pinned space command shows only in its space. Pinned items also appear in their own section.
 2. **Agents:** ones waiting for input go above the current one.
-3. **Spaces:** open spaces, then all saved spaces. A saved space that's open is listed twice: once as open, once as saved. Open and saved spaces are matched by folder, never by label.
-4. **Commands:** the current space's commands, then global ones.
+3. **Commands:** the current space's commands, then global ones.
+4. **Spaces:** open spaces, then all saved spaces. A saved space that's open is listed twice: once as open, once as saved. Open and saved spaces are matched by folder, never by label.
 5. **Settings** (§7).
 6. **Host actions:** one section per category, e.g. `pane.wait_for_output` → "Pane: Wait For Output".
 

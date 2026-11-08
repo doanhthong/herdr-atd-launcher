@@ -37,18 +37,18 @@ test("host actions hide unaskable and palette", () => {
 test("main list order and contents", () => {
   const ctx = { hostActions: host, currentSaved: currentSavedSpace(cfg, "/Users/me/code/web", null, home) };
   const secs = buildMain(snap, cfg, ctx);
-  assert.deepEqual(secs.map((s) => s.title), ["Quick Actions", "Agents", "Spaces", "Commands", "Settings", "Pane"]);
+  assert.deepEqual(secs.map((s) => s.title), ["Quick Actions", "Agents", "Commands", "Spaces", "Settings", "Pane"]);
   assert.deepEqual(secs[0].rows.map((r) => r.label), ["New Claude tab", "New tab", "Run tests"]);
   assert.deepEqual(secs[1].rows.map((r) => r.agent.address), ["t2", "t1"]);
-  assert.equal(secs[2].rows[0].label, "web"); // current open space first
-  assert.equal(secs[2].rows.find((r) => r.key === "saved:web").icon, "→");
-  assert.equal(secs[2].rows.find((r) => r.key === "saved:docs").icon, "+");
-  assert.deepEqual(secs[3].rows.map((r) => r.label), ["Run tests", "Claude"]);
+  assert.equal(secs[3].rows[0].label, "web"); // current open space first
+  assert.equal(secs[3].rows.find((r) => r.key === "saved:web").icon, "→");
+  assert.equal(secs[3].rows.find((r) => r.key === "saved:docs").icon, "+");
+  assert.deepEqual(secs[2].rows.map((r) => r.label), ["Run tests", "Claude"]);
 });
 test("space commands hidden outside their space", () => {
   const secs = buildMain(snap, cfg, { hostActions: host, currentSaved: null });
   assert.deepEqual(secs[0].rows.map((r) => r.label), ["New Claude tab", "New tab"]);
-  assert.deepEqual(secs[3].rows.map((r) => r.label), ["Claude"]);
+  assert.deepEqual(secs[2].rows.map((r) => r.label), ["Claude"]);
 });
 test("search: one ranked list, pinned items once", () => {
   const secs = buildMain(snap, cfg, { hostActions: host, currentSaved: cfg.spaces[0] });
