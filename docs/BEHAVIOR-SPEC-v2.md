@@ -1,7 +1,7 @@
 ---
 title: Command Palette — Behavior & Experience Spec (v2)
 status: draft for review
-updated: 2026-11-08
+updated: 2026-11-09
 tags: [spec, command-palette, ux]
 ---
 
@@ -276,3 +276,4 @@ Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each
 - [ ] **B1** The "New Claude tab" quick action doesn't show up in search results
 - [ ] **B2** Search results make it hard to tell agents, commands and other kinds of rows apart, because the ranking reorders them and mixes the kinds together: keep the section grouping while searching, or style each kind differently
 - [ ] **B3** Consider listing tabs that aren't running an agent too
+- [ ] **B4** New space with a path taken from the current space (`~/current-space`), then the path changed (`~/new-space`): opening a new tab in that space goes to `~/current-space`. A new tab should open in the space's changed path
