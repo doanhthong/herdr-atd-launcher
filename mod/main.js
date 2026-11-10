@@ -12,7 +12,7 @@ import {
   home, appHome, readTextFile, writeTextFile, layout, layouts, themes, notify, settings,
 } from "herdr";
 import * as C from "./lib/config.js";
-import { buildMain, flatten, currentSavedSpace, openSpaceFor, expand, tilde, commandRow, savedSpaceRow, openSpaceRow, hostRow, pinRow, resolvePin } from "./lib/model.js";
+import { buildMain, flatten, typeIcon, currentSavedSpace, openSpaceFor, expand, tilde, commandRow, savedSpaceRow, openSpaceRow, hostRow, pinRow, resolvePin } from "./lib/model.js";
 import { hostActions, checkNumber } from "./lib/hostactions.js";
 
 const MOD = "atd-launcher";
@@ -1063,6 +1063,7 @@ export default class Palette extends View {
       .when(selected, (el) => el.bg(t.hover))
       .when(!selected, (el) => el.hover((st) => st.bg(faint)))
       .child(div().w(16).flex_none().text_color(iconColor).child(row.icon ?? ""))
+      .when(searching && Boolean(typeIcon(row)), (el) => el.child(div().w(20).flex_none().child(typeIcon(row))))
       .when(row.num != null, (el) => el.child(div().w(16).flex_none().text_color(t.dim).child(String(row.num))))
       .child(div().flex_shrink_0().max_w(260).truncate().text_color(row.missing ? t.ansi3 : t.foreground).child(row.label))
       .child(div().flex_1().min_w(0).truncate().text_size(12).text_color(t.dim).child(row.detail ?? ""))

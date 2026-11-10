@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseConfig } from "../mod/lib/config.js";
-import { buildMain, flatten, currentSavedSpace } from "../mod/lib/model.js";
+import { buildMain, flatten, currentSavedSpace, typeIcon } from "../mod/lib/model.js";
 import { hostActions, describe } from "../mod/lib/hostactions.js";
 
 const home = "/Users/me";
@@ -78,4 +78,18 @@ test("search: a command ranks above a space matching equally", () => {
   const iCmd = rows.findIndex((r) => r.kind === "command");
   const iSpace = rows.findIndex((r) => r.kind === "savedSpace");
   assert.ok(iCmd >= 0 && iSpace >= 0 && iCmd < iSpace);
+});
+
+test("typeIcon: one per kind, pins show their target's", () => {
+  const secs = buildMain(snap, cfg, { hostActions: host, currentSaved: cfg.spaces[0] });
+  const rows = secs.flatMap((s) => s.rows);
+  const of = (pred) => typeIcon(rows.find(pred));
+  assert.equal(of((r) => r.kind === "agent"), "🤖");
+  assert.equal(of((r) => r.kind === "command"), "⚡");
+  assert.equal(of((r) => r.kind === "savedSpace"), "📁");
+  assert.equal(of((r) => r.kind === "openSpace"), "📁");
+  assert.equal(of((r) => r.kind === "setting"), "⚙️");
+  assert.equal(of((r) => r.kind === "host"), "🧩");
+  assert.equal(of((r) => r.kind === "pin" && r.target.kind === "command"), "⚡");
+  assert.equal(of((r) => r.kind === "pin" && r.target.kind === "builtin"), "✨");
 });

@@ -194,6 +194,13 @@ export function buildMain(snap, cfg, ctx) {
   return sections;
 }
 
+/** §4.3: the color type icon shown before the label while searching. A pin shows its target's. */
+const TYPE_ICONS = { agent: "🤖", command: "⚡", savedSpace: "📁", openSpace: "📁", space: "📁", setting: "⚙️", configError: "⚙️", host: "🧩", builtin: "✨" };
+export function typeIcon(row) {
+  const kind = row.kind === "pin" ? row.target?.kind : row.kind;
+  return TYPE_ICONS[kind] ?? "";
+}
+
 /** Search ranking bonus: commands (and pins to commands) rank above spaces. */
 const COMMAND_BONUS = 10;
 function kindBonus(r) {

@@ -1,7 +1,7 @@
 ---
 title: Command Palette — Behavior & Experience Spec (v2)
 status: draft for review
-updated: 2026-11-09
+updated: 2026-11-10
 tags: [spec, command-palette, ux]
 ---
 
@@ -95,6 +95,15 @@ Each row starts with a 2-character icon slot so text lines up. Long lines are cu
 ### 4.3 Search
 
 Fuzzy, case-insensitive, characters in order. Ranks higher: word-start matches, consecutive characters, shorter text. Commands (and pins to commands) get a fixed bonus, so they rank above spaces that match about equally; a clearly better match still wins. Also matches folders, command text, agent/tab names and method names. While searching, headers hide, results form one ranked list with a dim type tag (`Agent`, `Command`…), and pinned items appear once.
+
+While searching, each row also gets a color **type icon** between its action icon (§4.2) and its label, so kinds stay easy to tell apart in the mixed list: 🤖 agent · ⚡ command · 📁 space (open or saved) · ⚙️ setting · 🧩 host action · ✨ built-in quick action (`New tab`, `New space`). A pin shows the icon of what it points to. Without a query the section headers do this job, so there's no type icon.
+
+```text
+> cla_
+● 🤖 web         claude — fix login bug     working     Agent
+▸ ⚡ Claude       global · claude                        Command
+→ 📁 claude-cfg   ~/code/claude-cfg                      Space
+```
 
 ## 5. Keys
 
@@ -274,6 +283,6 @@ Near-term work; items have IDs (T = to do, B = bug) to refer to in commits; each
 ### Bugs
 
 - [ ] **B1** The "New Claude tab" quick action doesn't show up in search results
-- [ ] **B2** Search results make it hard to tell agents, commands and other kinds of rows apart, because the ranking reorders them and mixes the kinds together: keep the section grouping while searching, or style each kind differently
+- [x] **B2** Search results make it hard to tell agents, commands and other kinds of rows apart, because the ranking reorders them and mixes the kinds together: settled as a color type icon per kind while searching (§4.3)
 - [ ] **B3** Consider listing tabs that aren't running an agent too
 - [ ] **B4** New space with a path taken from the current space (`~/current-space`), then the path changed (`~/new-space`): opening a new tab in that space goes to `~/current-space`. A new tab should open in the space's changed path
