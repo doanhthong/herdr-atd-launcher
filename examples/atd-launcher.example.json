@@ -2,7 +2,7 @@
   "commands": [
     { "id": "claude", "label": "Claude", "command": "claude" },
     { "id": "claude-work", "label": "Claude (work)", "command": "CLAUDE_CONFIG_DIR=$HOME/.claude-work claude" },
-    { "id": "codex", "label": "Codex", "command": "codex", "askSpace": false },
+    { "id": "codex", "label": "Codex", "command": "codex" },
     { "id": "zed", "label": "Open in Zed", "command": "zed . && exit" },
     { "id": "vscode", "label": "Open in VS Code", "command": "code . && exit" }
   ],
@@ -18,6 +18,7 @@
   ],
   "quickActions": [
     { "command": "claude", "label": "New Claude tab" },
+    { "command": "codex", "label": "New Codex tab" },
     { "builtin": "new-tab" },
     { "builtin": "new-space" },
     { "command": "web/test" },
