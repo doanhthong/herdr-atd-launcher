@@ -141,6 +141,8 @@ On rows that don't run anything (settings, open spaces, agents, host actions, pi
 
 The Tab menu has two sections: **Run** (the four destinations, in this order; on other rows the actions that do something: Open, Switch to, Focus, Run…) and **Manage** (Ask for space, Pin/Unpin, Edit…, Remove…, Move to…, Rename, Unpin…; no shortcut). A row with nothing to manage shows one section without headers. **Ask for space** is a setting of each saved command, not of pins: *on* → Enter shows the picker, *off* → Enter runs in a new tab in the same space (the current space, or the command's own space for a space command). Default: on for global commands, off for space commands. It is changed from the command's menu (`Ask for space: on (turn off)`), and *Run in new tab in…* stays in the menu either way so a space can always be chosen. Pins have no settings: a pin behaves exactly like the command it points to. `New tab` always asks (it has no flag).
 
+**Global bindings:** herdr-app's default keys bind `cmd-shift-enter` to `pane.zoom`, which would swallow *Here* before the palette sees it. The palette binds `cmd-shift-enter` itself in its own key context, which wins while it is open (like Tab).
+
 **Keys that don't work (tried in the real window on macOS):** `Ctrl+Enter` and `Opt+Enter` don't reach the palette, so *Here* is `⌘Shift+Enter`, checked before `Shift+Enter`. On Linux and Windows ⌘ is the Super / Windows key (§3), so `Alt+Enter` and `Alt+Shift+Enter` are the keys there.
 
 **Bold** = Enter. Remove/Close items confirm first.

@@ -36,7 +36,13 @@ export default class Palette extends View {
       st.on("submit", (e, cx) => this.enter(runMode({ platform: e.secondary, shift: e.shift }), cx));
     }
     // The window overlay moves focus on Tab before on_key_down sees it, so bind Tab to an action.
-    try { cx.bind_keys([{ keystroke: "tab", action: "atd-tab", context: "AtdPalette" }]); } catch (e) { /* keep going: other keys still work */ }
+    // Same for ⌘Shift+Enter: the person's global keys may own it (the default keys bind it to pane.zoom).
+    try {
+      cx.bind_keys([
+        { keystroke: "tab", action: "atd-tab", context: "AtdPalette" },
+        { keystroke: "cmd-shift-enter", action: "atd-here", context: "AtdPalette" },
+      ]);
+    } catch (e) { /* keep going: other keys still work */ }
     this.scroll = VirtualListScrollHandle.new();
     this.home = home();
     this.platform = appWindow()?.platform ?? "linux";
@@ -1188,6 +1194,7 @@ export default class Palette extends View {
       .track_focus(this.handle)
       .key_context("AtdPalette")
       .on_action("atd-tab", (_e, cx) => this.onKey({ key: "tab", modifiers: {} }, cx))
+      .on_action("atd-here", (_e, cx) => (this.top().type === "record" ? this.onKey({ key: "enter", keystroke: "cmd-shift-enter", modifiers: { platform: true, shift: true } }, cx) : this.enter("here", cx)))
       .on_key_down((e, cx) => this.onKey(e, cx))
       .size_full()
       .min_h(0)
