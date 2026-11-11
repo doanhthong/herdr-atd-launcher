@@ -8,7 +8,7 @@ An Arc-style New Tab for herdr-app. Press ⌘T and a centered box comes up with 
 
 - **A window overlay**, 680px wide and 75% of the window's height, centered, on `popover`, 14px padding, 10px gaps, 13px text in `foreground`. Nothing is dimmed behind it.
 - **The header**: the screen's title in 14px semibold ("ATD Launcher" on the main list, a breadcrumb like `Claude → Run in new tab in` on a picker). On the right, in 11px `dim`, it says what Esc does now: `Esc clear search`, `Esc back to <screen>` or `Esc close`.
-- **The search line**: `> ` then the query, with a drawn cursor. It's text the palette draws, not a native input.
+- **The search line**: `> ` then a native gpui-base `Input` (placeholder `Search everything…` on the main list, `Search…` elsewhere). Prompts use the same field, so input methods, selection and paste work.
 - **The list**: a virtual list of 30px rows under 26px section headers (11px semibold `dim`, bottom-aligned). Sections, top to bottom, each hidden when empty and each with the current item first:
   1. **Quick Actions**: the person's pins, in order. Defaults: `+ New Claude tab` (`claude`), `+ New tab`, `+ New space`.
   2. **Agents**: running agents as `space  program — tab title  status`. Agents waiting for input (`◐`, `ansi3`) come above the current one.
@@ -46,6 +46,7 @@ An Arc-style New Tab for herdr-app. Press ⌘T and a centered box comes up with 
 ## Watch out
 
 - A `dialog` overlay eats Esc before the mod sees it, so this has to be a `window` overlay. Inside it, Tab moves focus before `on_key_down` sees the key, so bind `tab` to an action (`atd-tab`) in a key context.
+- The search box and prompts are `Input`s, so they get letters, Backspace, ←/→ and Enter (its `submit`). The root's `on_key_down` must `stop_propagation` only for the keys the palette uses (Esc, ↑↓, PgUp/PgDn, Ctrl+P/N/U/C, Tab), or typing stops working. Create the `InputState`s once in `init`: a state's placeholder can't change later.
 - A window overlay doesn't give the keyboard back when it closes: call `pane.focus` on the origin pane before closing.
 - `v_virtual_list` item sizes don't follow the app zoom: multiply them by `settings().zoom`, or rows overlap. `on_click` isn't allowed inside its rows: use `on_item_click` on the list. `herdr-app check` doesn't run row renderers, so row bugs only show in the real window.
 - In the current themes `selected` ≈ `popover`, so the selection uses `hover`. Hover state can go stale: hover doesn't move the selection.
