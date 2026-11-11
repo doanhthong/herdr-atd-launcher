@@ -27,7 +27,8 @@ mod/mod.json               overlay spec used by mod.open
 mod/lib/fuzzy.js           §4.3 search scoring                 ┐
 mod/lib/config.js          §8 parse/defaults/edits of the file │ pure: no "herdr" imports,
 mod/lib/model.js           §4 sections and rows                │ tested with node
-mod/lib/hostactions.js     §6.4 host actions, input inference  ┘
+mod/lib/hostactions.js     §6.4 host actions, input inference  │
+mod/lib/keys.js            §3/§6.1 per-platform keys and hints ┘
 test/*.test.js             node:test for mod/lib
 scripts/sync.sh            copy mod/ into herdr-app's mods folder
 ```

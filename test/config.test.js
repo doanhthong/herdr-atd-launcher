@@ -7,7 +7,16 @@ test("no file → defaults", () => {
   assert.equal(c.fatal, null);
   assert.deepEqual(c.commands.map((x) => x.id), ["claude"]);
   assert.equal(c.quickActions.length, 3);
-  assert.equal(c.shortcut, "cmd-t");
+  assert.equal(c.shortcut, "ctrl-t");
+  assert.equal(C.parseConfig(null, "macos").shortcut, "cmd-t");
+  assert.equal(C.parseConfig(null, "windows").shortcut, "ctrl-t");
+});
+test("setShortcut skips the platform default when the file has none", () => {
+  const raw = {};
+  C.setShortcut(raw, "ctrl-t", "linux");
+  assert.equal(raw.shortcut, undefined);
+  C.setShortcut(raw, "ctrl-t", "macos");
+  assert.equal(raw.shortcut, "ctrl-t");
 });
 test("empty quickActions stays empty", () => {
   assert.equal(C.parseConfig('{"quickActions":[]}').quickActions.length, 0);

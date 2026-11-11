@@ -1,6 +1,6 @@
 # herdr-atd-launcher
 
-A command palette mod (`atd-launcher`) for herdr-app, opened with ⌘T.
+A command palette mod (`atd-launcher`) for herdr-app, opened with ⌘T (Ctrl+T on Linux and Windows).
 
 - What it does: [`docs/BEHAVIOR-SPEC-v2.md`](docs/BEHAVIOR-SPEC-v2.md) (source of truth)
 - How to work on it: [`AGENTS.md`](AGENTS.md)
@@ -16,7 +16,9 @@ A command palette mod (`atd-launcher`) for herdr-app, opened with ⌘T.
    ```json
    "cmd-t": "mod.open:atd-launcher"
    ```
-   This replaces herdr-app's ⌘T (new tab); pick another key if you want to keep it.
+   On Linux and Windows use `"ctrl-t"` instead: there `cmd` is the Super / Windows key, which
+   the desktop usually takes. On macOS this replaces herdr-app's ⌘T (new tab); pick another key
+   if you want to keep it.
 3. **Create your config** (recommended) from the example, then edit its spaces and commands:
    ```sh
    cp examples/atd-launcher.example.json ~/.config/herdr-app/atd-launcher.json
@@ -29,7 +31,7 @@ A command palette mod (`atd-launcher`) for herdr-app, opened with ⌘T.
    `Makefile`, etc.) as space `commands`. Ask it to follow
    [§8 of the spec](docs/BEHAVIOR-SPEC-v2.md#8-configuration-file) and keep your existing
    entries. If you do this often, turn it into a skill so you can re-run it as projects come and go.
-4. **Press ⌘T.**
+4. **Press ⌘T** (Ctrl+T on Linux and Windows).
 
 ## Config
 
@@ -39,13 +41,15 @@ Most of it can also be edited from the palette itself (Tab on a row, or Settings
 - Start from [`examples/atd-launcher.example.json`](examples/atd-launcher.example.json),
   or use **Open config file** in the palette's settings, which creates it with the defaults.
 - The example's **Open in Zed** / **Open in VS Code** open the chosen space's folder
-  (pick the space, or ⌘Enter for the current one). The editor opens in its own window and the
-  command then exits, so the new tab closes with it. ⌘⇧Enter runs it in the current terminal
+  (pick the space, or ⌘Enter / Alt+Enter for the current one). The editor opens in its own window and the
+  command then exits, so the new tab closes with it. ⌘⇧Enter / Alt+Shift+Enter runs it in the current terminal
   instead (the shell exits there too, so use it only when that's what you want).
 - `label` and `id` are optional: a space command like `{ "command": "pnpm dev --port 3001" }`
   is labelled by its command text. A second Claude profile is just another command with env vars
   in front (see `Claude (work)`).
 - Without a config the palette still runs: Claude as the only command, three default
   quick actions, no saved spaces.
-- `shortcut` in this file wins: the palette writes it to `keys.json` each time it opens.
+- `shortcut` in this file wins: the palette writes it to `keys.json` each time it opens. Leave it
+  out (as the example does) to keep the binding from step 2; set it when you sync the file
+  between machines of one platform.
 - Every field is described in [§8 of the spec](docs/BEHAVIOR-SPEC-v2.md#8-configuration-file).

@@ -1,7 +1,7 @@
 ---
 title: Command Palette — Behavior & Experience Spec (v2)
 status: draft for review
-updated: 2026-11-10
+updated: 2026-11-11
 tags: [spec, command-palette, ux]
 ---
 
@@ -35,8 +35,8 @@ Default quick actions: `+ New Claude tab` (`claude`) · `+ New tab` · `+ New sp
 
 ## 3. Opening and closing
 
-- **Shortcut:** ⌘T where the app receives ⌘ keys, otherwise prefix+T. Configurable. Pressing it again closes the palette. In herdr-app the shortcut is a `keys.json` global binding to `mod.open:atd-launcher`; the config file's `shortcut` is written there each time the palette opens, so the file wins.
-- **Terminals often swallow ⌘ keys,** so `Alt+Enter` stands in for `⌘Enter`. The footer always shows keys that work, and Settings warns when a chosen shortcut can't be received.
+- **Shortcut:** ⌘T (`cmd-t`) on macOS, `Ctrl+T` (`ctrl-t`) on Linux and Windows. Configurable. Pressing it again closes the palette. In herdr-app the shortcut is a `keys.json` global binding to `mod.open:atd-launcher`; the config file's `shortcut` is written there each time the palette opens, so the file wins.
+- **⌘ on Linux and Windows:** herdr-app spells the Super / Windows key `cmd`, and the desktop usually takes those chords before the app sees them (terminals swallow ⌘ keys too). So `Alt` stands in for `⌘` in every run key on every platform (`Alt+Enter` = `⌘Enter`, `Alt+Shift+Enter` = `⌘Shift+Enter`), and the key hints (footer, Tab menu, the record screen's example) show `⌘` on macOS and `Alt` / `Ctrl` on Linux and Windows. The footer always shows keys that work, and Settings warns when a chosen shortcut can't be received (on Linux and Windows: any `cmd-…` shortcut).
 - **Overlay kind:** herdr-app closes a `dialog` on Esc before the mod sees the key, so Esc could never go back. The palette is therefore a `window` overlay (Esc goes to the mod, no dimming, a click beside it does not close it). Close with Esc on the main list, `Ctrl+C`, or the shortcut again.
 - **Config rows show at once;** live sections show `Loading…` until their data arrives.
 - **Closes:** any successful run, focus or create, and Open config file.
@@ -115,14 +115,14 @@ While searching, each row also gets a color **type icon** between its action ico
 | `Enter` | anywhere | Do the default (§6.1: *choose space* on runnable rows, else the first item of the row's menu). In Manage quick actions, Enter opens the pin's options instead |
 | `⌘Enter` / `Alt+Enter` | runnable rows | New tab in the same space |
 | `Shift+Enter` | runnable rows | Right pane of the current tab |
-| `⌘Shift+Enter` | runnable rows | Here: type into the current terminal |
+| `⌘Shift+Enter` / `Alt+Shift+Enter` | runnable rows | Here: type into the current terminal |
 | `Tab` | rows | More options: every action of the row, each with its shortcut shown on the right |
 | `Shift+↑↓` | Manage quick actions | Move a pin (saves immediately) |
 | `Esc` | anywhere | Back one step: clear the search → previous screen (search and selection restored) → close. The header always names what Esc will do now ("Esc clear search", "Esc back to <screen>", "Esc close") |
 | `Ctrl+C` | anywhere | Close |
 | click / right-click | rows | Same as plain `Enter` / `Tab`. Modifiers don't apply to clicks |
 
-On rows that don't run anything (settings, open spaces, agents, host actions, pickers, prompts) the modifier + Enter keys do the same as Enter. `Alt` is the stand-in for `⌘` (§3); `Shift`/`⌘Shift` + Enter are not used by the palette's text editing.
+On rows that don't run anything (settings, open spaces, agents, host actions, pickers, prompts) the modifier + Enter keys do the same as Enter. `Alt` is the stand-in for `⌘` (§3); `Shift`/`⌘Shift`/`Alt+Shift` + Enter are not used by the palette's text editing. Key hints show `⌘` on macOS and `Alt` on Linux and Windows (`Alt+↵`, `Alt+⇧↵`).
 
 ## 6. Rows
 
@@ -135,18 +135,18 @@ On rows that don't run anything (settings, open spaces, agents, host actions, pi
 | `Enter` | **Choose space** when the command's *ask for space* is on (default for global commands): picker, then a new tab there. When it is off (default for space commands): same as ⌘Enter | `Run in new tab in…` `↵` (or `Run in new tab` `↵ ⌘↵` when off) |
 | `⌘Enter` / `Alt+Enter` | **New tab, same space:** the current space (global command) or the command's own space (space command) | `Run in new tab` `⌘↵` |
 | `Shift+Enter` | **Right pane:** splits the current tab to the right and starts it there (`terminal.open place: right`) | `Run in right pane` `⇧↵` |
-| `⌘Shift+Enter` | **Here:** types into the current terminal (§6.2 guards busy panes) | `Run here` `⌘⇧↵` |
+| `⌘Shift+Enter` / `Alt+Shift+Enter` | **Here:** types into the current terminal (§6.2 guards busy panes) | `Run here` `⌘⇧↵` |
 
 The Tab menu has two sections: **Run** (the four destinations, in this order; on other rows the actions that do something: Open, Switch to, Focus, Run…) and **Manage** (Ask for space, Pin/Unpin, Edit…, Remove…, Move to…, Rename, Unpin…; no shortcut). A row with nothing to manage shows one section without headers. **Ask for space** is a setting of each saved command, not of pins: *on* → Enter shows the picker, *off* → Enter runs in a new tab in the same space (the current space, or the command's own space for a space command). Default: on for global commands, off for space commands. It is changed from the command's menu (`Ask for space: on (turn off)`), and *Run in new tab in…* stays in the menu either way so a space can always be chosen. Pins have no settings: a pin behaves exactly like the command it points to. `New tab` always asks (it has no flag).
 
-**Keys that don't work (tried in the real window):** `Ctrl+Enter` and `Opt+Enter` don't reach the palette, so *Here* is `⌘Shift+Enter`, checked before `Shift+Enter`.
+**Keys that don't work (tried in the real window on macOS):** `Ctrl+Enter` and `Opt+Enter` don't reach the palette, so *Here* is `⌘Shift+Enter`, checked before `Shift+Enter`. On Linux and Windows ⌘ is the Super / Windows key (§3), so `Alt+Enter` and `Alt+Shift+Enter` are the keys there.
 
 **Bold** = Enter. Remove/Close items confirm first.
 
 | Row | Options menu (`Tab` key) | Notes |
 | --- | --- | --- |
-| Saved command | **Run in new tab in…** (or **Run in new tab** when *ask for space* is off) · Run in new tab · Run in right pane · Run here · Ask for space: on/off · Pin/Unpin · Edit… · Remove… | The four destinations above. A new tab is not renamed (herdr-app's automatic title stays). The picker has the command's natural space first (the current space for a global command, its own space for a space command when that space is open; if it isn't open, the current space is first and the saved space is listed under Saved). If the chosen space isn't open, it's opened and its first tab is used. Right pane and Here always act on the current tab/pane (if the focus isn't on a terminal pane, herdr-app can't split it: the key does nothing); a space command's right pane checks the folder like a new tab does (`Folder not found…`); a space command's right pane starts in the command's space folder |
-| New tab | **In…** (choose space) · In current space · In right pane | Opens an empty tab / pane. No *Here* (nothing to type): `⌘Shift+Enter` is ignored |
+| Saved command | **Run in new tab in…** (or **Run in new tab** when *ask for space* is off) · Run in new tab · Run in right pane · Run here · Ask for space: on/off · Pin/Unpin · Edit… · Remove… | The four destinations above. A new tab is not renamed (herdr-app's automatic title stays). The picker has the command's natural space first (the current space for a global command, its own space for a space command when that space is open; if it isn't open, the current space is first and the saved space is listed under Saved). If the chosen space isn't open, it's opened and its first tab is used. Right pane and Here always act on the current tab/pane (if the focus isn't on a terminal pane, herdr-app can't split it: the key does nothing); a space command's right pane checks the folder like a new tab does (`Folder not found…`); a space command's right pane starts in the command's space folder. |
+| New tab | **In…** (choose space) · In current space · In right pane | Opens an empty tab / pane. No *Here* (nothing to type): `⌘Shift+Enter` / `Alt+Shift+Enter` is ignored |
 | New space | — | Asks for a folder (prefilled with the current one), creates the space and switches to it |
 | Saved space | **Open** · Open a new copy · Pin/Unpin · Add command… · Edit… · Remove… | Open switches to it if open, else creates it at its folder. Missing folder → `Folder not found: <path>` with Edit… / Remove / Back |
 | Open space | **Switch to** · Close… | |
@@ -247,7 +247,7 @@ Recommended, and part of the install guide (README): start from `examples/atd-la
 }
 ```
 
-- **Defaults:** missing `commands` → just Claude; missing `quickActions` → the three defaults; `[]` → empty. Labels (taken from the folder name or the command text) and `id`s (created by the palette) can be left out. Moving a command to another scope keeps an explicit `askSpace`; an implicit one follows the new scope's default. Commands take an optional `askSpace` (true for global commands, false for space commands when missing). Pins have no behaviour fields. Older files with `newTab` / `chooseSpace` on a pin are still read, the fields are ignored (the item's own Enter behaviour applies) and they are dropped the next time the palette rewrites that pin.
+- **Defaults:** missing `shortcut` → `cmd-t` on macOS, `ctrl-t` on Linux and Windows (§3); missing `commands` → just Claude; missing `quickActions` → the three defaults; `[]` → empty. Labels (taken from the folder name or the command text) and `id`s (created by the palette) can be left out. Moving a command to another scope keeps an explicit `askSpace`; an implicit one follows the new scope's default. Commands take an optional `askSpace` (true for global commands, false for space commands when missing). Pins have no behaviour fields. Older files with `newTab` / `chooseSpace` on a pin are still read, the fields are ignored (the item's own Enter behaviour applies) and they are dropped the next time the palette rewrites that pin.
 - **References:** global commands by `id`, space commands by `space-id/command-id`.
 - **Errors:** a broken file shows one `⚠ Config error` row, with details and Open config file. Incomplete entries are skipped and listed there too. Everything else keeps working.
 - **Preserving the file:** writes keep unknown keys and the existing order. If the file changed on disk since the palette read it, the write is refused, the file is re-read and the user is told to try again. A broken file is never written; fix it first.
