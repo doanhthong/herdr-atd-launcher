@@ -146,10 +146,20 @@ export default class Palette extends View {
     screen.resolve?.(value);
   }
 
+  // Every way out: Esc, Ctrl+C, actions, and herdr-app's teardown hook `close(cx)`
+  // (the shortcut pressed again). §3: the keyboard goes back to the pane the
+  // palette was opened from; an action's own run() after this moves it on.
   close() {
     if (this.closed) return;
     this.closed = true;
+    this.refocus();
     closeOverlay(props().overlay);
+  }
+
+  refocus() {
+    const { pane, terminal } = this.origin;
+    if (pane && panes().some((p) => p.pane === pane)) run("pane.focus", { pane });
+    else if (terminal) run("pane.focus", { terminal });
   }
 
   back(cx) {
