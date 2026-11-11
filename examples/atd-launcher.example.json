@@ -4,8 +4,8 @@
     { "id": "claude", "label": "Claude", "command": "claude" },
     { "id": "claude-work", "label": "Claude (work)", "command": "CLAUDE_CONFIG_DIR=$HOME/.claude-work claude" },
     { "id": "codex", "label": "Codex", "command": "codex", "askSpace": false },
-    { "id": "zed", "label": "Open in Zed", "command": "zed ." },
-    { "id": "vscode", "label": "Open in VS Code", "command": "code ." }
+    { "id": "zed", "label": "Open in Zed", "command": "zed . && exit" },
+    { "id": "vscode", "label": "Open in VS Code", "command": "code . && exit" }
   ],
   "spaces": [
     {

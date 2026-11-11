@@ -39,8 +39,9 @@ Most of it can also be edited from the palette itself (Tab on a row, or Settings
 - Start from [`examples/atd-launcher.example.json`](examples/atd-launcher.example.json),
   or use **Open config file** in the palette's settings, which creates it with the defaults.
 - The example's **Open in Zed** / **Open in VS Code** open the chosen space's folder
-  (pick the space, or ⌘Enter for the current one). The editor opens in its own window; the
-  new tab is left with a shell in that folder. ⌘⇧Enter runs it in the current terminal instead.
+  (pick the space, or ⌘Enter for the current one). The editor opens in its own window and the
+  command then exits, so the new tab closes with it. ⌘⇧Enter runs it in the current terminal
+  instead (the shell exits there too, so use it only when that's what you want).
 - `label` and `id` are optional: a space command like `{ "command": "pnpm dev --port 3001" }`
   is labelled by its command text. A second Claude profile is just another command with env vars
   in front (see `Claude (work)`).
