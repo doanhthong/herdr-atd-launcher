@@ -2,7 +2,8 @@
 // keep unknown keys and existing order. Pure: no herdr imports, so it's testable
 // with node. `raw` is the parsed JSON tree; edits mutate it in place.
 
-export const DEFAULT_SHORTCUT = "cmd-t";
+import { defaultShortcut } from "./keys.js";
+
 const defaultCommands = () => [{ id: "claude", label: "Claude", command: "claude" }];
 export const defaultQuickActions = () => [
   { command: "claude", label: "New Claude tab" },
@@ -61,9 +62,10 @@ function normCommands(list, where, errors, spaceId) {
 /**
  * Parses the file's text (null: no file). Returns
  * { raw, fatal, errors, shortcut, commands, spaces, quickActions, synthetic }.
+ * `platform` (herdr's window().platform) picks the default shortcut.
  * A broken file gives `fatal` and the defaults, so everything else keeps working.
  */
-export function parseConfig(text) {
+export function parseConfig(text, platform) {
   let raw = {};
   let fatal = null;
   if (text != null && text.trim()) {
@@ -75,13 +77,13 @@ export function parseConfig(text) {
       raw = {};
     }
   }
-  return { ...normalize(raw), fatal };
+  return { ...normalize(raw, platform), fatal };
 }
 
-export function normalize(raw) {
+export function normalize(raw, platform) {
   const errors = [];
   const synthetic = { commands: raw.commands === undefined, quickActions: raw.quickActions === undefined };
-  const shortcut = typeof raw.shortcut === "string" && raw.shortcut ? raw.shortcut : DEFAULT_SHORTCUT;
+  const shortcut = typeof raw.shortcut === "string" && raw.shortcut ? raw.shortcut : defaultShortcut(platform);
 
   let cmdList = raw.commands === undefined ? defaultCommands() : raw.commands;
   if (!Array.isArray(cmdList)) { errors.push(`"commands" must be a list`); cmdList = []; }
@@ -329,7 +331,7 @@ export function resetPins(raw) {
   delete raw.quickActions;
 }
 
-export function setShortcut(raw, shortcut) {
-  if (shortcut === DEFAULT_SHORTCUT && raw.shortcut === undefined) return;
+export function setShortcut(raw, shortcut, platform) {
+  if (shortcut === defaultShortcut(platform) && raw.shortcut === undefined) return;
   raw.shortcut = shortcut;
 }

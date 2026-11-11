@@ -1,5 +1,4 @@
 {
-  "shortcut": "cmd-t",
   "commands": [
     { "id": "claude", "label": "Claude", "command": "claude" },
     { "id": "claude-work", "label": "Claude (work)", "command": "CLAUDE_CONFIG_DIR=$HOME/.claude-work claude" },

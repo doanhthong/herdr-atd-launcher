@@ -1,5 +1,5 @@
 // Command Palette (docs/BEHAVIOR-SPEC-v2.md). Opened with `mod.open:atd-launcher`
-// (⌘T); pressing it again closes it. One list of every target and action.
+// (⌘T on macOS, Ctrl+T elsewhere); pressing it again closes it. One list of every target and action.
 //
 // Screens form a stack. The main list is the bottom; options menus, pickers,
 // prompts and confirms are pushed on top and resolve a promise, so flows are
@@ -9,11 +9,12 @@ import { View, div } from "gpui-kit";
 import { v_flex, h_flex, v_virtual_list, Scrollbar, VirtualListScrollHandle } from "gpui-base";
 import {
   spaces, agents, panes, focused, commands, terminals, theme, props, closeOverlay, run, hc, exec,
-  home, appHome, readTextFile, writeTextFile, layout, layouts, themes, notify, settings,
+  home, appHome, readTextFile, writeTextFile, layout, layouts, themes, notify, settings, window as appWindow,
 } from "herdr";
 import * as C from "./lib/config.js";
 import { buildMain, flatten, typeIcon, currentSavedSpace, openSpaceFor, expand, tilde, commandRow, savedSpaceRow, openSpaceRow, hostRow, pinRow, resolvePin } from "./lib/model.js";
 import { hostActions, checkNumber } from "./lib/hostactions.js";
+import { defaultShortcut, runKeyHints, runMode, shortcutExample, unreachableShortcut } from "./lib/keys.js";
 
 const MOD = "atd-launcher";
 const BACK = Symbol("back");
@@ -29,6 +30,8 @@ export default class Palette extends View {
     cx.timer.after(300, () => this.handle.focus());
     this.scroll = VirtualListScrollHandle.new();
     this.home = home();
+    this.platform = appWindow()?.platform ?? "linux";
+    this.runKeys = runKeyHints(this.platform);
     this.configDir = appHome();
     this.configPath = `${this.configDir}/atd-launcher.json`;
     this.oldConfigPath = `${this.home}/.config/atd-launcher/config.json`; // before T5 (§8)
@@ -68,7 +71,7 @@ export default class Palette extends View {
     let text = null;
     try { text = await readTextFile(this.configPath); } catch (e) { text = null; }
     this.cfgText = text;
-    this.cfg = C.parseConfig(text);
+    this.cfg = C.parseConfig(text, this.platform);
   }
 
   /** Applies `edit(raw)` to the file and saves it. Returns edit's result. */
@@ -84,7 +87,7 @@ export default class Palette extends View {
     const text = C.serialize(raw);
     await writeTextFile(this.configPath, text, onDisk);
     this.cfgText = text;
-    this.cfg = C.parseConfig(text);
+    this.cfg = C.parseConfig(text, this.platform);
     return out;
   }
 
@@ -295,7 +298,7 @@ export default class Palette extends View {
     else if (k === "pageup") move(-10);
     else if (k === "pagedown") move(10);
     else if (k === "enter") {
-      if (row) s.onEnter?.(row, cx, m.platform && m.shift ? "here" : m.platform || m.alt ? "tab" : m.shift ? "pane" : "enter");
+      if (row) s.onEnter?.(row, cx, runMode(m));
     } else if (k === "tab") {
       if (row && s.onTab) s.onTab(row, cx);
     } else return;
@@ -374,7 +377,7 @@ export default class Palette extends View {
   /** Footer of the main list: the keys that do something on the selected row. */
   mainFooter(row) {
     const items = row ? this.menuFor(row) : [];
-    const keys = { tab: "⌘↵", pane: "⇧↵", here: "⌘⇧↵" };
+    const keys = this.runKeys;
     const parts = [];
     if (items[0]) parts.push(`Enter ${items[0].short ?? items[0].label.toLowerCase()}`);
     for (const it of items.slice(1)) if (keys[it.slot] && it.short) parts.push(`${keys[it.slot]} ${it.short}`);
@@ -394,7 +397,7 @@ export default class Palette extends View {
       build: () => {
         const rows = items.map((it, i) => ({
           key: `m${i}`, icon: it.icon ?? "", color: it.color ?? null, label: it.label, detail: it.detail ?? "", item: it,
-          aside: [i === 0 ? "↵" : "", { tab: "⌘↵", pane: "⇧↵", here: "⌘⇧↵" }[it.slot] ?? ""].filter(Boolean).join(" "),
+          aside: [i === 0 ? "↵" : "", this.runKeys[it.slot] ?? ""].filter(Boolean).join(" "),
           run: i === 0 || Boolean(it.slot || it.short),
         }));
         const run = rows.filter((r) => r.run);
@@ -986,6 +989,7 @@ export default class Palette extends View {
     if (!ks) return null;
     const warn = [];
     if (!/(cmd|ctrl|alt)-/.test(ks) && !/^f\d+$/.test(ks)) warn.push(`"${ks}" has no modifier, so it can't be typed anywhere else.`);
+    if (unreachableShortcut(ks, this.platform)) warn.push(`"cmd" is the Super / Windows key here; the desktop usually takes "${ks}" before herdr-app sees it.`);
     const keysPath = `${appHome()}/keys.json`;
     const text = await readTextFile(keysPath);
     const keys = text ? JSON.parse(text) : {};
@@ -996,7 +1000,7 @@ export default class Palette extends View {
     if (other && other !== `mod.open:${MOD}`) warn.push(`"${ks}" is now ${other}; it will be replaced.`);
     if (warn.length && !(await this.confirm(cx, `Use ${ks}?`, warn.join("\n")))) return null;
     await this.writeShortcut(ks);
-    await this.save((raw) => C.setShortcut(raw, ks));
+    await this.save((raw) => C.setShortcut(raw, ks, this.platform));
     return `✓ Shortcut is now ${ks}`;
   }
 
@@ -1023,7 +1027,7 @@ export default class Palette extends View {
   async openConfigFile() {
     const exists = await readTextFile(this.configPath).catch(() => null);
     if (exists == null) {
-      const starter = { shortcut: C.DEFAULT_SHORTCUT, commands: [{ id: "claude", label: "Claude", command: "claude" }], spaces: [], quickActions: C.defaultQuickActions() };
+      const starter = { shortcut: defaultShortcut(this.platform), commands: [{ id: "claude", label: "Claude", command: "claude" }], spaces: [], quickActions: C.defaultQuickActions() };
       await writeTextFile(this.configPath, C.serialize(starter), null);
     }
     this.close();
@@ -1149,7 +1153,7 @@ export default class Palette extends View {
     const s = this.top();
     const body = s.type === "list" ? this.renderList(t, s)
       : s.type === "prompt" ? this.renderPrompt(t, s)
-      : v_flex().flex_1().items_center().justify_center().gap(6).child(div().text_size(14).text_color(t.foreground).child("Press the new shortcut…")).child(div().text_size(12).text_color(t.dim).child("e.g. ⌘T"));
+      : v_flex().flex_1().items_center().justify_center().gap(6).child(div().text_size(14).text_color(t.foreground).child("Press the new shortcut…")).child(div().text_size(12).text_color(t.dim).child(`e.g. ${shortcutExample(this.platform)}`));
     const status = this.status;
     return v_flex()
       .id("atd-palette")
