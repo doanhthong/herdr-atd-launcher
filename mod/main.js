@@ -603,7 +603,9 @@ export default class Palette extends View {
     const folder = saved ? expand(saved.path, this.home) : null;
     if (saved) await this.checkFolder(cx, saved);
     this.close();
-    run("terminal.open", { argv: this.toArgv(c.command), place: "right", ...(folder ? { folder } : {}) });
+    // herdr-app starts a split's program directly with its own PATH (tab.new goes through the
+    // login shell), so `pi` from ~/.local/share/pnpm/bin isn't found. Use the login shell here too.
+    run("terminal.open", { argv: [this.shell, "-lic", c.command.trim()], place: "right", ...(folder ? { folder } : {}) });
   }
 
   /** dest: { open: SpaceInfo } | { saved: savedSpace } | undefined (the command's own place). */
