@@ -1,6 +1,6 @@
 # AGENTS.md
 
-A command palette for **herdr-app**, written as a herdr-app mod named `atd-launcher`.
+**ATD Launcher**, a command palette for **herdr-app**, written as a herdr-app mod named `atd-launcher`.
 
 ## Source of truth
 

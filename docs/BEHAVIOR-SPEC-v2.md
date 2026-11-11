@@ -1,11 +1,11 @@
 ---
-title: Command Palette — Behavior & Experience Spec (v2)
+title: ATD Launcher — Behavior & Experience Spec (v2)
 status: draft for review
 updated: 2026-11-11
 tags: [spec, command-palette, ux]
 ---
 
-# Command Palette — Behavior & Experience Spec (v2)
+# ATD Launcher — Behavior & Experience Spec (v2)
 
 > [!abstract]
 > What the user sees and what happens, not how it's built. **This is the source of truth** for the `atd-launcher` herdr-app mod: change behavior here first, then the code. Where herdr-app forces a difference, the difference is written here too.
@@ -35,6 +35,7 @@ Default quick actions: `+ New Claude tab` (`claude`) · `+ New tab` · `+ New sp
 
 ## 3. Opening and closing
 
+- **Name:** the main list's header and the overlay's title read **ATD Launcher**. It's a command palette that works like a browser's New Tab (Arc's ⌘T): one shortcut, pick an agent, pick the space to run it in.
 - **Shortcut:** ⌘T (`cmd-t`) on macOS, `Ctrl+T` (`ctrl-t`) on Linux and Windows. Configurable. Pressing it again closes the palette. In herdr-app the shortcut is a `keys.json` global binding to `mod.open:atd-launcher`; the config file's `shortcut` is written there each time the palette opens, so the file wins.
 - **⌘ on Linux and Windows:** herdr-app spells the Super / Windows key `cmd`, and the desktop usually takes those chords before the app sees them (terminals swallow ⌘ keys too). So `Alt` stands in for `⌘` in every run key on every platform (`Alt+Enter` = `⌘Enter`, `Alt+Shift+Enter` = `⌘Shift+Enter`), and the key hints (footer, Tab menu, the record screen's example) show `⌘` on macOS and `Alt` / `Ctrl` on Linux and Windows. The footer always shows keys that work, and Settings warns when a chosen shortcut can't be received (on Linux and Windows: any `cmd-…` shortcut).
 - **Overlay kind:** herdr-app closes a `dialog` on Esc before the mod sees the key, so Esc could never go back. The palette is therefore a `window` overlay (Esc goes to the mod, no dimming, a click beside it does not close it). Close with Esc on the main list, `Ctrl+C`, or the shortcut again.
@@ -46,7 +47,7 @@ Default quick actions: `+ New Claude tab` (`claude`) · `+ New tab` · `+ New sp
 ## 4. The main list
 
 ```text
-Command Palette
+ATD Launcher
 > query_
 
 Quick Actions

@@ -1,1 +1,1 @@
-{ "place": "none", "title": "Command Palette", "overlay": { "kind": "window", "key": "atd-palette", "width": 680, "height": 0.75 } }
+{ "place": "none", "title": "ATD Launcher", "overlay": { "kind": "window", "key": "atd-palette", "width": 680, "height": 0.75 } }

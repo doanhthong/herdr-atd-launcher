@@ -1,4 +1,4 @@
-// Command Palette (docs/BEHAVIOR-SPEC-v2.md). Opened with `mod.open:atd-launcher`
+// ATD Launcher, a command palette (docs/BEHAVIOR-SPEC-v2.md). Opened with `mod.open:atd-launcher`
 // (⌘T on macOS, Ctrl+T elsewhere); pressing it again closes it. One list of every target and action.
 //
 // Screens form a stack. The main list is the bottom; options menus, pickers,
@@ -117,7 +117,7 @@ export default class Palette extends View {
 
   mainScreen() {
     return {
-      type: "list", main: true, title: "Command Palette", query: "", cursor: 0, sel: 0, selKey: null, counter: true,
+      type: "list", main: true, title: "ATD Launcher", query: "", cursor: 0, sel: 0, selKey: null, counter: true,
       build: () => buildMain(this.snap(), this.cfg, this.ctx()),
       footer: (row) => this.mainFooter(row),
       onEnter: (row, cx, mode) => this.enterRow(row, cx, mode),
