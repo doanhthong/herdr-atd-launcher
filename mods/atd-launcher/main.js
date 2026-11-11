@@ -14,7 +14,7 @@ import {
 import * as C from "./lib/config.js";
 import { buildMain, flatten, typeIcon, currentSavedSpace, openSpaceFor, expand, tilde, commandRow, savedSpaceRow, openSpaceRow, hostRow, pinRow, resolvePin } from "./lib/model.js";
 import { hostActions, checkNumber } from "./lib/hostactions.js";
-import { defaultShortcut, runKeyHints, runMode, shortcutExample, unreachableShortcut } from "./lib/keys.js";
+import { runKeyHints, runMode, shortcutExample, unreachableShortcut } from "./lib/keys.js";
 
 const MOD = "atd-launcher";
 const BACK = Symbol("back");
@@ -1039,7 +1039,7 @@ export default class Palette extends View {
   async openConfigFile() {
     const exists = await readTextFile(this.configPath).catch(() => null);
     if (exists == null) {
-      const starter = { shortcut: defaultShortcut(this.platform), commands: [{ id: "claude", label: "Claude", command: "claude" }], spaces: [], quickActions: C.defaultQuickActions() };
+      const starter = { commands: [{ id: "claude", label: "Claude", command: "claude" }], spaces: [], quickActions: C.defaultQuickActions() };
       await writeTextFile(this.configPath, C.serialize(starter), null);
     }
     this.close();
