@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import * as C from "../mod/lib/config.js";
+import * as C from "../mods/atd-launcher/lib/config.js";
 
 test("no file → defaults", () => {
   const c = C.parseConfig(null);

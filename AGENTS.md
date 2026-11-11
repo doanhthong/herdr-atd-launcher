@@ -20,20 +20,26 @@ A command palette for **herdr-app**, written as a herdr-app mod named `atd-launc
 
 ## Layout
 
+The repo follows the herdr.dev/mods gallery layout: the mod lives in `mods/atd-launcher/` (copied as-is
+into `~/.config/herdr-app/mods/`), `keys.json` is merged into the person's keys, and `RECIPE.md` +
+`preview.png` are the gallery's brief and picture. Below, `M/` = `mods/atd-launcher/`.
+
 ```
 docs/BEHAVIOR-SPEC-v2.md   the spec (source of truth)
-mod/main.js                the View: screen stack, keys, flows, rendering (imports "herdr")
-mod/mod.json               overlay spec used by mod.open
-mod/lib/fuzzy.js           §4.3 search scoring                 ┐
-mod/lib/config.js          §8 parse/defaults/edits of the file │ pure: no "herdr" imports,
-mod/lib/model.js           §4 sections and rows                │ tested with node
-mod/lib/hostactions.js     §6.4 host actions, input inference  │
-mod/lib/keys.js            §3/§6.1 per-platform keys and hints ┘
-test/*.test.js             node:test for mod/lib
-scripts/sync.sh            copy mod/ into herdr-app's mods folder
+RECIPE.md                  gallery brief: build it from scratch (describes the spec's behavior; keep in step)
+keys.json                  gallery: the shortcut binding merged on install
+M/main.js                  the View: screen stack, keys, flows, rendering (imports "herdr")
+M/mod.json                 overlay spec used by mod.open
+M/lib/fuzzy.js             §4.3 search scoring                 ┐
+M/lib/config.js            §8 parse/defaults/edits of the file │ pure: no "herdr" imports,
+M/lib/model.js             §4 sections and rows                │ tested with node
+M/lib/hostactions.js       §6.4 host actions, input inference  │
+M/lib/keys.js              §3/§6.1 per-platform keys and hints ┘
+test/*.test.js             node:test for M/lib
+scripts/sync.sh            copy M/ into herdr-app's mods folder
 ```
 
-Keep anything testable in `mod/lib/` and free of `herdr`/`gpui-*` imports; `main.js` passes live data in.
+Keep anything testable in `M/lib/` and free of `herdr`/`gpui-*` imports; `main.js` passes live data in.
 
 ## How main.js works
 
@@ -47,13 +53,13 @@ Keep anything testable in `mod/lib/` and free of `herdr`/`gpui-*` imports; `main
 
 ```sh
 npm test                                              # pure modules
-./scripts/sync.sh                                     # copy mod/ → ~/.config/herdr-app/mods/atd-launcher
+./scripts/sync.sh                                     # copy mods/atd-launcher/ → ~/.config/herdr-app/mods/atd-launcher
 herdr-app check ~/.config/herdr-app/mods/atd-launcher # must pass before calling anything done
 herdr-app status                                      # overlays, mod errors
 herdr-app shot /path/in/scratchpad.png                # look at it
 ```
 
-- Edit `mod/` in this repo only; never edit the copy in `~/.config/herdr-app/mods/atd-launcher`. A symlink there is **not** watched by herdr-app, which is why sync copies the files.
+- Edit `mods/atd-launcher/` in this repo only; never edit the copy in `~/.config/herdr-app/mods/atd-launcher`. A symlink there is **not** watched by herdr-app, which is why sync copies the files.
 - An open palette keeps its old code. Close it and open it again: `herdr-app do mod.open --name atd-launcher` toggles it (check `herdr-app status` first to know which way you're toggling).
 - `check` doesn't run virtual-list row renderers. Row bugs only show in the real window (for example, `on_click` isn't allowed inside a virtual list's rows: use `on_item_click` on the list).
 - The person may be working in that window. Opening the palette takes their keyboard focus, and a stray Enter runs the default action. Ask before opening it, close it when done, and never send synthetic keys or pointer events to their display. Keyboard behavior is tested by the person.

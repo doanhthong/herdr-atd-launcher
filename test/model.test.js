@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseConfig } from "../mod/lib/config.js";
-import { buildMain, flatten, currentSavedSpace, typeIcon } from "../mod/lib/model.js";
-import { hostActions, describe } from "../mod/lib/hostactions.js";
+import { parseConfig } from "../mods/atd-launcher/lib/config.js";
+import { buildMain, flatten, currentSavedSpace, typeIcon } from "../mods/atd-launcher/lib/model.js";
+import { hostActions, describe } from "../mods/atd-launcher/lib/hostactions.js";
 
 const home = "/Users/me";
 const cfg = parseConfig(JSON.stringify({

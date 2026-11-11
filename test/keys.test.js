@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import * as K from "../mod/lib/keys.js";
+import * as K from "../mods/atd-launcher/lib/keys.js";
 
 const mods = (o = {}) => ({ shift: false, control: false, alt: false, platform: false, function: false, ...o });
 

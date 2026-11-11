@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fuzzyScore, scoreFields } from "../mod/lib/fuzzy.js";
+import { fuzzyScore, scoreFields } from "../mods/atd-launcher/lib/fuzzy.js";
 
 test("matches characters in order, case-insensitive", () => {
   assert.ok(fuzzyScore("ncl", "New Claude tab") != null);
