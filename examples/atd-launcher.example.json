@@ -2,6 +2,7 @@
   "shortcut": "cmd-t",
   "commands": [
     { "id": "claude", "label": "Claude", "command": "claude" },
+    { "id": "claude-work", "label": "Claude (work)", "command": "CLAUDE_CONFIG_DIR=$HOME/.claude-work claude" },
     { "id": "codex", "label": "Codex", "command": "codex", "askSpace": false },
     { "id": "zed", "label": "Open in Zed", "command": "zed ." },
     { "id": "vscode", "label": "Open in VS Code", "command": "code ." }
@@ -14,7 +15,7 @@
         { "id": "test", "label": "Run tests", "command": "pnpm test --watch" }
       ]
     },
-    { "path": "~/code/api" }
+    { "path": "~/code/api", "commands": [{ "command": "pnpm dev --port 3001" }] }
   ],
   "quickActions": [
     { "command": "claude", "label": "New Claude tab" },

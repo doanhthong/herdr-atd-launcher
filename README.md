@@ -23,6 +23,12 @@ A command palette mod (`atd-launcher`) for herdr-app, opened with ⌘T.
    ```
    Add the spaces you've opened recently in herdr-app to `spaces` (or use
    **+ Add space…** in the palette's Settings), so they're one search away even when closed.
+
+   Tip: let an agent do this. Ask it to scan the folders you've worked in lately, add them as
+   `spaces`, and add each project's dev/test commands (from `package.json` scripts, a
+   `Makefile`, etc.) as space `commands`. Ask it to follow
+   [§8 of the spec](docs/BEHAVIOR-SPEC-v2.md#8-configuration-file) and keep your existing
+   entries. If you do this often, turn it into a skill so you can re-run it as projects come and go.
 4. **Press ⌘T.**
 
 ## Config
@@ -35,6 +41,9 @@ Most of it can also be edited from the palette itself (Tab on a row, or Settings
 - The example's **Open in Zed** / **Open in VS Code** open the chosen space's folder
   (pick the space, or ⌘Enter for the current one). The editor opens in its own window; the
   new tab is left with a shell in that folder. ⌘⇧Enter runs it in the current terminal instead.
+- `label` and `id` are optional: a space command like `{ "command": "pnpm dev --port 3001" }`
+  is labelled by its command text. A second Claude profile is just another command with env vars
+  in front (see `Claude (work)`).
 - Without a config the palette still runs: Claude as the only command, three default
   quick actions, no saved spaces.
 - `shortcut` in this file wins: the palette writes it to `keys.json` each time it opens.
