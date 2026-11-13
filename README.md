@@ -1,9 +1,15 @@
 # ATD Launcher
 
-**An Arc-like command palette (New Tab) for [herdr-app](https://herdr.dev).** Press ⌘T, pick an agent,
-pick the space it should run in. Each space keeps its own quick commands one keystroke away.
+**One hotkey to rule them all.** An Arc-like command palette (New Tab) for [herdr-app](https://herdr.dev):
+press ⌘T, pick an agent, pick the space it should run in. Each space keeps its own quick commands one
+keystroke away.
 
-![ATD Launcher](preview.png)
+[Preview coming soon]
+
+> đù tiện thiệt 👌
+> <br>*(Whoa, that's really handy 👌)*
+>
+> — dthongvl
 
 ## Why
 
