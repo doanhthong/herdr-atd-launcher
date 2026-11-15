@@ -374,10 +374,14 @@ export default class Palette extends View {
     if (k === "u" && m.control) { cx.stop_propagation(); this.status = null; this.setText(s, ""); return cx.notify(); }
     if (s.type === "prompt" && s.folders) {
       const sug = this.folderSuggestions(s);
-      if (!sug.length || !["up", "down", "tab"].includes(k)) return;
+      // Same moves as the lists (§5): ↑↓ Ctrl+P/N wrap, PgUp/PgDn go 10 and stop at the ends.
+      const d = k === "up" || (m.control && k === "p") ? -1 : k === "down" || (m.control && k === "n") ? 1
+        : k === "pageup" ? -10 : k === "pagedown" ? 10 : 0;
+      if (!sug.length || (k !== "tab" && !d)) return;
       cx.stop_propagation();
-      if (k === "tab") return this.completeSuggestion(s, sug[Math.min(s.fsel, sug.length - 1)], cx);
-      s.fsel = (Math.min(s.fsel, sug.length - 1) + (k === "up" ? -1 : 1) + sug.length) % sug.length;
+      const n = sug.length, cur = Math.min(s.fsel, n - 1);
+      if (k === "tab") return this.completeSuggestion(s, sug[cur], cx);
+      s.fsel = Math.abs(d) === 1 ? (cur + d + n) % n : Math.max(0, Math.min(n - 1, cur + d));
       return cx.notify();
     }
     if (s.type !== "list") return;
