@@ -34,7 +34,8 @@ M/lib/fuzzy.js             §4.3 search scoring                 ┐
 M/lib/config.js            §8 parse/defaults/edits of the file │ pure: no "herdr" imports,
 M/lib/model.js             §4 sections and rows                │ tested with node
 M/lib/hostactions.js       §6.4 host actions, input inference  │
-M/lib/keys.js              §3/§6.1 per-platform keys and hints ┘
+M/lib/keys.js              §3/§6.1 per-platform keys and hints │
+M/lib/folders.js           §6.5 folder prompt suggestions      ┘
 test/*.test.js             node:test for M/lib
 scripts/sync.sh            copy M/ into herdr-app's mods folder
 ```

@@ -15,6 +15,7 @@ import * as C from "./lib/config.js";
 import { buildMain, flatten, typeIcon, currentSavedSpace, openSpaceFor, expand, tilde, commandRow, savedSpaceRow, openSpaceRow, hostRow, pinRow, resolvePin } from "./lib/model.js";
 import { hostActions, checkNumber } from "./lib/hostactions.js";
 import { runKeyHints, runMode, shortcutExample, unreachableShortcut } from "./lib/keys.js";
+import { splitFolderPath, matchFolders, completeFolder, parseFindOutput } from "./lib/folders.js";
 
 const MOD = "atd-launcher";
 const BACK = Symbol("back");
@@ -55,6 +56,7 @@ export default class Palette extends View {
     this.status = null;
     this.shell = "/bin/zsh";
     this.closed = false;
+    this.dirs = new Map(); // §6.5 folder prompt: expanded folder → subfolder names (null while reading or unreadable)
     const f = focused();
     this.origin = { space: f?.space ?? null, tab: f?.tab ?? null, pane: f?.pane ?? null, terminal: f?.terminal ?? null, cwd: f?.cwd ?? null };
     this.host = hostActions(commands());
@@ -155,6 +157,7 @@ export default class Palette extends View {
   ask(cx, screen) {
     return new Promise((resolve) => {
       this.push(cx, { ...screen, resolve });
+      if (screen.folders) this.readFolders(cx);
     }).then((v) => { cx.notify(); return v; });
   }
 
@@ -184,7 +187,7 @@ export default class Palette extends View {
 
   /** Sets the top screen's text from code (Esc, Ctrl+U), field included. */
   setText(s, text) {
-    if (s.type === "prompt") { s.value = text; s.note = s.check ? s.check(text) : null; }
+    if (s.type === "prompt") { s.value = text; s.note = s.check ? s.check(text) : null; s.fsel = 0; }
     else { s.query = text; s.sel = 0; s.selKey = null; this.scroll.scroll_to_item(0); }
     const st = this.fieldFor(s);
     if (st.value() !== text) st.set_value(text);
@@ -197,6 +200,42 @@ export default class Palette extends View {
     if (text === (s.type === "prompt" ? s.value : s.query)) return;
     this.status = null;
     this.setText(s, text);
+    if (s.folders) this.readFolders(cx);
+    cx.notify();
+  }
+
+  // ---- §6.5 folder prompt --------------------------------------------------------
+
+  /** The suggestions for a folder prompt's current text (empty while its folder is being read). */
+  folderSuggestions(s) {
+    const sp = s.folders ? splitFolderPath(s.value) : null;
+    const names = sp && this.dirs.get(expand(sp.dir, this.home));
+    return names ? matchFolders(names, sp.partial) : [];
+  }
+
+  /** Reads the folder the top prompt's text points into, once per folder while the palette is open. */
+  readFolders(cx) {
+    const sp = splitFolderPath(this.top().value ?? "");
+    if (!sp) return;
+    const dir = expand(sp.dir, this.home);
+    if (this.dirs.has(dir)) return;
+    this.dirs.set(dir, null);
+    cx.spawn(async (cx) => {
+      try {
+        // A folder with unreadable children exits non-zero but still lists the rest.
+        const r = await exec("find", ["-L", dir, "-mindepth", "1", "-maxdepth", "1", "-type", "d"], { timeout: 5000 });
+        this.dirs.set(dir, parseFindOutput(r.stdout, dir));
+      } catch { /* unreadable: no list */ }
+      if (!this.closed) cx.notify();
+    });
+  }
+
+  /** Tab or click on a suggestion: put it in the field, cursor at the end. */
+  completeSuggestion(s, name, cx) {
+    const text = completeFolder(s.value, name);
+    this.setText(s, text);
+    this.fields.prompt.set_selected_range({ start: text.length, end: text.length });
+    this.readFolders(cx);
     cx.notify();
   }
 
@@ -305,8 +344,11 @@ export default class Palette extends View {
   }
 
   /** A one-line text prompt. Resolves the text or null. */
-  prompt(cx, title, { value = "", help = "", check = null } = {}) {
-    return this.ask(cx, { type: "prompt", title, value, help, check, note: null, footer: "Enter OK · Esc back" });
+  prompt(cx, title, { value = "", help = "", check = null, folders = false } = {}) {
+    const footer = folders
+      ? (s) => (this.folderSuggestions(s).length ? "Tab complete · ↑↓ choose · Enter OK · Esc back" : "Enter OK · Esc back")
+      : "Enter OK · Esc back";
+    return this.ask(cx, { type: "prompt", title, value, help, check, note: null, folders, fsel: 0, footer });
   }
 
   // ---- key handling -------------------------------------------------------------
@@ -330,6 +372,14 @@ export default class Palette extends View {
     // Plain Enter normally arrives as the field's submit; Alt+Enter and friends may come here.
     if (k === "enter") { cx.stop_propagation(); return this.enter(runMode(m), cx); }
     if (k === "u" && m.control) { cx.stop_propagation(); this.status = null; this.setText(s, ""); return cx.notify(); }
+    if (s.type === "prompt" && s.folders) {
+      const sug = this.folderSuggestions(s);
+      if (!sug.length || !["up", "down", "tab"].includes(k)) return;
+      cx.stop_propagation();
+      if (k === "tab") return this.completeSuggestion(s, sug[Math.min(s.fsel, sug.length - 1)], cx);
+      s.fsel = (Math.min(s.fsel, sug.length - 1) + (k === "up" ? -1 : 1) + sug.length) % sug.length;
+      return cx.notify();
+    }
     if (s.type !== "list") return;
 
     const { rows } = this.view(s);
@@ -734,7 +784,7 @@ export default class Palette extends View {
     await this.steps(cx, [
       async (s) => {
         const v = await this.prompt(cx, "New space → Folder", {
-          value: s.path ?? tilde(this.originCwd() ?? this.home, this.home), help: "e.g. ~/code/web",
+          value: s.path ?? tilde(this.originCwd() ?? this.home, this.home), help: "e.g. ~/code/web", folders: true,
         });
         if (v == null) return BACK;
         s.path = v.trim();
@@ -824,7 +874,7 @@ export default class Palette extends View {
   async editSpace(cx, sp) {
     const st = await this.steps(cx, [
       async (s) => {
-        const v = await this.prompt(cx, `${sp.label} → Folder`, { value: s.path ?? sp.path, help: "e.g. ~/code/web" });
+        const v = await this.prompt(cx, `${sp.label} → Folder`, { value: s.path ?? sp.path, help: "e.g. ~/code/web", folders: true });
         if (v == null) return BACK;
         s.path = v.trim();
         if (!(await this.folderExists(s.path))) throw Object.assign(new Error(`Folder not found: ${s.path}`), { hint: "Check the path and try again." });
@@ -842,7 +892,7 @@ export default class Palette extends View {
   async addSpaceFlow(cx) {
     const st = await this.steps(cx, [
       async (s) => {
-        const v = await this.prompt(cx, "Add space → Folder", { value: s.path ?? tilde(this.originCwd() ?? this.home, this.home), help: "e.g. ~/code/web" });
+        const v = await this.prompt(cx, "Add space → Folder", { value: s.path ?? tilde(this.originCwd() ?? this.home, this.home), help: "e.g. ~/code/web", folders: true });
         if (v == null) return BACK;
         s.path = v.trim();
         if (!(await this.folderExists(s.path))) throw Object.assign(new Error(`Folder not found: ${s.path}`), { hint: "Check the path and try again." });
@@ -1169,7 +1219,19 @@ export default class Palette extends View {
       .child(h_flex().h(34).flex_none().px(10).items_center().rounded(8).border_1().border_color(t.accent).bg(t.background)
         .child(Input.new(this.fields.prompt).flex_1().h_full().text_color(t.foreground)))
       .when(Boolean(s.note), (el) => el.child(div().px(4).text_size(12).text_color(t.ansi3).child(s.note)))
-      .when(Boolean(s.help), (el) => el.child(div().px(4).text_size(12).text_color(t.dim).child(s.help)));
+      .when(Boolean(s.help), (el) => el.child(div().px(4).text_size(12).text_color(t.dim).child(s.help)))
+      .child(this.renderSuggestions(t, s));
+  }
+
+  renderSuggestions(t, s) {
+    const sug = this.folderSuggestions(s);
+    const sel = Math.min(s.fsel, sug.length - 1);
+    return v_flex().flex_none().children(sug.map((name, i) => h_flex().id(`fs-${i}`).h(ROW_H).px(10).gap(8).items_center().rounded(6)
+      .when(i === sel, (el) => el.bg(t.hover))
+      .hover((st) => st.bg(t.hover))
+      .on_click((_e, cx) => this.completeSuggestion(s, name, cx))
+      .child(div().w(10).text_color(t.dim).child(i === sel ? "›" : ""))
+      .child(div().flex_1().truncate().child(`${name}/`))));
   }
 
   render(cx) {
@@ -1208,6 +1270,6 @@ export default class Palette extends View {
         .child(div().text_size(11).text_color(t.dim).child(this.escHint())))
       .child(body)
       .when(Boolean(status), (el) => el.child(div().flex_none().px(4).text_size(12).text_color(status.kind === "error" ? t.ansi1 : t.ansi2).child(status.text)))
-      .child(div().flex_none().pt(6).border_t(1).border_color(t.border).text_size(11).text_color(t.dim).child(typeof s.footer === "function" ? s.footer(this.view(s).rows[s.sel]) : s.footer ?? ""));
+      .child(div().flex_none().pt(6).border_t(1).border_color(t.border).text_size(11).text_color(t.dim).child(typeof s.footer === "function" ? s.footer(s.type === "list" ? this.view(s).rows[s.sel] : s) : s.footer ?? ""));
   }
 }

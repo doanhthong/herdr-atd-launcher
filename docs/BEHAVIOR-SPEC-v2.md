@@ -1,7 +1,7 @@
 ---
 title: ATD Launcher — Behavior & Experience Spec (v2)
 status: draft for review
-updated: 2026-11-11
+updated: 2026-11-15
 tags: [spec, command-palette, ux]
 ---
 
@@ -112,17 +112,18 @@ While searching, each row also gets a color **type icon** between its action ico
 | Key | Where | Action |
 | --- | --- | --- |
 | type, `Backspace`, `Ctrl+U` | search, prompts | Edit / clear. The search box and prompts are herdr-app's native text field (gpui-base `Input`), so input methods (IBus Bamboo…), selection, copy and paste work as in any other field |
-| `↑` `↓` `Ctrl+P` `Ctrl+N` `PgUp` `PgDn` | lists | Move. `↑` on the first row goes to the last and `↓` on the last goes to the first; `PgUp`/`PgDn` stop at the ends |
+| `↑` `↓` `Ctrl+P` `Ctrl+N` `PgUp` `PgDn` | lists, folder suggestions | Move. `↑` on the first row goes to the last and `↓` on the last goes to the first; `PgUp`/`PgDn` stop at the ends |
 | `←` `→` `Home` `End` | search, prompts | Move the cursor (the native field's own editing keys) |
 | `Enter` | anywhere | Do the default (§6.1: *choose space* on runnable rows, else the first item of the row's menu). In Manage quick actions, Enter opens the pin's options instead |
 | `⌘Enter` / `Alt+Enter` | runnable rows | New tab in the same space |
 | `Shift+Enter` | runnable rows | Right pane of the current tab |
 | `⌘Shift+Enter` / `Alt+Shift+Enter` | runnable rows | Here: type into the current terminal |
 | `Tab` | rows | More options: every action of the row, each with its shortcut shown on the right |
+| `Tab` | folder prompts | Complete: put the selected folder suggestion in the field (§6.5) |
 | `Shift+↑↓` | Manage quick actions | Move a pin (saves immediately) |
 | `Esc` | anywhere | Back one step: clear the search → previous screen (search and selection restored) → close. The header always names what Esc will do now ("Esc clear search", "Esc back to <screen>", "Esc close") |
 | `Ctrl+C` | anywhere | Close |
-| click / right-click | rows | Same as plain `Enter` / `Tab`. Modifiers don't apply to clicks |
+| click / right-click | rows | Same as plain `Enter` / `Tab`. Modifiers don't apply to clicks. Clicking a folder suggestion completes it, like `Tab` |
 
 On rows that don't run anything (settings, open spaces, agents, host actions, pickers, prompts) the modifier + Enter keys do the same as Enter. In a text field Enter arrives as the field's *submit*, which reports Shift and the platform's secondary modifier (⌘ on macOS, Ctrl on Linux and Windows), so there `Ctrl+Enter` also means ⌘Enter. `Alt` is the stand-in for `⌘` (§3); `Shift`/`⌘Shift`/`Alt+Shift` + Enter are not used by the palette's text editing. Key hints show `⌘` on macOS and `Alt` on Linux and Windows (`Alt+↵`, `Alt+⇧↵`).
 
@@ -151,7 +152,7 @@ The Tab menu has two sections: **Run** (the four destinations, in this order; on
 | --- | --- | --- |
 | Saved command | **Run in new tab in…** (or **Run in new tab** when *ask for space* is off) · Run in new tab · Run in right pane · Run here · Ask for space: on/off · Pin/Unpin · Edit… · Remove… | The four destinations above. A new tab is not renamed (herdr-app's automatic title stays). The picker has the command's natural space first (the current space for a global command, its own space for a space command when that space is open; if it isn't open, the current space is first and the saved space is listed under Saved). If the chosen space isn't open, it's opened and its first tab is used. Right pane and Here always act on the current tab/pane (if the focus isn't on a terminal pane, herdr-app can't split it: the key does nothing); a space command's right pane checks the folder like a new tab does (`Folder not found…`); a space command's right pane starts in the command's space folder. herdr-app starts a new tab's program through the login shell but a split's program directly with the app's own `PATH`, so a command installed outside it (e.g. `pi` in `~/.local/share/pnpm/bin`) can't start in a split (`cannot start "pi": No such file or directory`); the right pane therefore always runs the command through `$SHELL -lic` |
 | New tab | **In…** (choose space) · In current space · In right pane | Opens an empty tab / pane. No *Here* (nothing to type): `⌘Shift+Enter` / `Alt+Shift+Enter` is ignored |
-| New space | — | Asks for a folder (prefilled with the current one), creates the space and switches to it |
+| New space | — | Asks for a folder (prefilled with the current one, with folder suggestions, §6.5), creates the space and switches to it |
 | Saved space | **Open** · Open a new copy · Pin/Unpin · Add command… · Edit… · Remove… | Open switches to it if open, else creates it at its folder. Missing folder → `Folder not found: <path>` with Edit… / Remove / Back |
 | Open space | **Switch to** · Close… | |
 | Agent | **Focus** · Close pane… | |
@@ -183,6 +184,18 @@ The saved space whose folder contains the current pane's working folder (deepest
 
 - **Picker:** works like the main list, titled with a breadcrumb, e.g. `Claude → Run in new tab in`.
 - **Text prompt:** one line plus a help line with an example. Invalid input shows an inline note instead of cancelling.
+- **Folder prompt:** a text prompt that suggests folders while you type. Used by every prompt that asks for a folder: New space, `+ Add space…` and a saved space's Edit…
+  - **What's listed:** the subfolders of the folder the text points into, whose names start with what's typed after the last `/` (case-insensitive), sorted by name, at most 8. `~/git-projects/her` lists `herdr-atd-launcher/`, `herdr-notes/`… in `~/git-projects`; `~/code/` lists everything in `~/code`. Symlinks to folders count. Hidden folders (`.config`) only show once the typed part starts with `.`. Only paths starting with `~` or `/` get suggestions (`~` alone means `~/`); an empty field, a relative path, a folder that can't be read or no match shows no list. Folders are read on this machine only (§9 remote spaces).
+  - **Keys:** `↑`/`↓` move the selection (the first suggestion is selected; it resets to the first whenever the text changes). `Tab` (or a click) replaces the typed name with the selected folder plus `/`, cursor at the end, so the next level is listed right away. `Enter` always submits exactly what's in the field, never the suggestion. Esc goes back as in any prompt. The footer reads `Tab complete · ↑↓ choose · Enter OK · Esc back` while there are suggestions.
+  ```
+  New space → Folder
+  ┌──────────────────────────────┐
+  │ ~/git-projects/her           │
+  └──────────────────────────────┘
+  › herdr-atd-launcher/
+    herdr-notes/
+  Tab complete · ↑↓ choose · Enter OK · Esc back
+  ```
 - **Confirm:** the title states the consequence, e.g. `Remove "web" and its 2 commands?`.
 - **Status line:** a one-line notice above the footer, e.g. `✓ Added "Dev server" to web`. It clears on the next keystroke.
 - **Error:** the message and what to try next.
@@ -191,7 +204,7 @@ The saved space whose folder contains the current pane's working folder (deepest
 
 | Row | Flow |
 | --- | --- |
-| `+ Add space…` | Folder (current) → label (folder name) |
+| `+ Add space…` | Folder (current; folder prompt, §6.5) → label (folder name) |
 | `+ Add command…` | Scope (This space / Global / other space) → command → label (the command, cut to ~30 characters) → Ask for space? (Yes / No; prefilled Yes for Global, No for a space) → Pin? (No / Yes) |
 | `✎ Manage quick actions…` | Pins in order, with the quick-action menu; `+ Add quick action…` (Built-ins / Commands / Spaces / Host actions, then no further questions: a pin has no options); `↺ Reset to defaults`. A pin whose item was deleted shows here as `⚠ missing: <label>`, never in the main list |
 | `✎ Manage commands…` | All commands, grouped Global / per space; the menu adds **Move to…** |
@@ -260,7 +273,7 @@ Recommended, and part of the install guide (README): start from `examples/atd-la
 ## 9. Ideas for later
 
 - [ ] Optional inputs for host actions ("More options…"), and list inputs (unlocks "send keys")
-- [ ] Folder completion in folder prompts
+- [x] Folder completion in folder prompts (§6.5 Folder prompt)
 - [ ] Command placeholders: `{folder}`, `{branch}`, `{file?}` asked at run time
 - [ ] Keep-open mode to run several actions in a row
 - [ ] Command groups: one pin opens agent + dev server + tests
