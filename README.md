@@ -4,7 +4,7 @@
 press ⌘T, pick an agent, pick the space it should run in. Each space keeps its own quick commands one
 keystroke away.
 
-[Preview coming soon]
+![ATD Launcher: the ⌘T palette with quick actions and agents waiting for you](preview.png)
 
 > đù tiện thiệt 👌
 > <br>*(Whoa, that's really handy 👌)*
