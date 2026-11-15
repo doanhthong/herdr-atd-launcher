@@ -1,10 +1,12 @@
 # ATD Launcher
 
-**One hotkey to rule them all.** An Arc-like command palette (New Tab) for [herdr-app](https://herdr.dev):
-press ⌘T, pick an agent, pick the space it should run in. Each space keeps its own quick commands one
-keystroke away.
+**One hotkey to rule them all.** An Arc-like command palette (New Tab) for [herdr-app](https://herdr.dev).
+Agent-first, keyboard-first: any agent, in any space, in two keys. Save the commands you keep retyping
+once, and they're one keystroke away from then on.
 
-![ATD Launcher: the ⌘T palette with quick actions and agents waiting for you](preview.png)
+[![ATD Launcher: the ⌘T palette with quick actions and agents waiting for you](preview.png)](https://youtu.be/MFB_vYGwEKg)
+
+▶ **[Watch the demo](https://youtu.be/MFB_vYGwEKg)**
 
 > đù tiện thiệt 👌
 > <br>*(Whoa, that's really handy 👌)*
@@ -20,6 +22,9 @@ ATD Launcher brings that to herdr-app:
 2. **Choose the space.** The current space comes first, then your other open spaces, then saved
    project folders that aren't open yet (picking one opens it).
 3. **It runs** in a new tab there. Your default flow is **⌘T, Enter, Enter**.
+
+The same goes for everything you'd otherwise retype. Before: open a tab, `cd ~/code/web`, remember the
+env var, type `CLAUDE_CONFIG_DIR=$HOME/.claude-work claude`. After: ⌘T, type `work`, Enter.
 
 ```text
 ATD Launcher                                   Esc close
@@ -45,11 +50,13 @@ Enter choose space · ⌘↵ new tab · ⇧↵ right pane · ⌘⇧↵ here · T
 
 ## What's in the box
 
-- **Quick commands per space**: the dev server, tests and "Open in Zed" of the project you're in
-  show at the top of Commands. They're gone when you're in another project.
+- **Search and switch your agents**: jump to any running agent. The ones waiting on you come first.
+- **Each space has its own saved commands**: dev servers, test runs, scripts, anything. They show at
+  the top of Commands only while you're in that project. Run one in a split pane with `⇧Enter`.
+- **Global commands run in any space**: Open in Zed, toggle the theme, a second Claude profile with
+  its env vars, your own scripts. Save once, fuzzy-find from anywhere.
 - **Four run keys, everywhere**: `Enter` picks a space · `⌘Enter` new tab here · `⇧Enter` right pane ·
   `⌘⇧Enter` types it into the current terminal (asks first if an agent is busy there).
-- **Agents waiting for you on top**: jump to any running agent. The ones waiting for input come first.
 - **Spaces**: switch to open ones, or open saved project folders by name.
 - **Fuzzy search over everything**, including every herdr-app command ("Pane: Split", "Layout: Switch"…),
   with type icons so agents, commands and spaces are easy to tell apart.

@@ -4,7 +4,9 @@
     { "id": "claude-work", "label": "Claude (work)", "command": "CLAUDE_CONFIG_DIR=$HOME/.claude-work claude" },
     { "id": "codex", "label": "Codex", "command": "codex" },
     { "id": "zed", "label": "Open in Zed", "command": "zed . && exit" },
-    { "id": "vscode", "label": "Open in VS Code", "command": "code . && exit" }
+    { "id": "vscode", "label": "Open in VS Code", "command": "code . && exit" },
+    { "id": "toggle-theme", "label": "Toggle light/dark", "askSpace": false,
+      "command": "f=$HOME/.config/herdr-app/settings.json; n=$(jq -r \"if .appearance==\\\"dark\\\" then \\\"light\\\" else \\\"dark\\\" end\" $f); jq --arg a $n \".appearance=\\$a\" $f > $f.tmp && mv $f.tmp $f; p=$(herdr-app ls | jq -r --arg t \"$HC_TERMINAL_ID\" \".spaces[].tabs[].terminals[]|select(.terminal==\\$t).pane\"); herdr-app do pane.close --pane $p; exit" }
   ],
   "spaces": [
     {
