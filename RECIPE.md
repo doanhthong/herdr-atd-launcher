@@ -46,7 +46,7 @@ An Arc-style New Tab for herdr-app. Press ⌘T and a centered box comes up with 
 
 ## Watch out
 
-- A `dialog` overlay eats Esc before the mod sees it, so this has to be a `window` overlay. Inside it, Tab moves focus before `on_key_down` sees the key, so bind `tab` to an action (`atd-tab`) in a key context. A window is dragged by any press the mod doesn't stop, so the root stops left mouse-down; and `mod.json` gives no overlay `key`, which would make it reopen where it was last dropped instead of centered.
+- A `dialog` overlay eats Esc before the mod sees it, so this has to be a `window` overlay. Inside it, Tab moves focus before `on_key_down` sees the key, so bind `tab` to an action (`atd-tab`) in a key context. A window is dragged by any press the mod doesn't stop, so the root stops left, right and middle mouse-down; and `mod.json` gives no overlay `key`, which would make it reopen where it was last dropped instead of centered.
 - The search box and prompts are `Input`s, so they get letters, Backspace, ←/→ and Enter (its `submit`). The root's `on_key_down` must `stop_propagation` only for the keys the palette uses (Esc, ↑↓, PgUp/PgDn, Ctrl+P/N/U/C, Tab), or typing stops working. Create the `InputState`s once in `init`: a state's placeholder can't change later.
 - A window overlay doesn't give the keyboard back when it closes: call `pane.focus` on the origin pane before closing.
 - `v_virtual_list` item sizes don't follow the app zoom: multiply them by `settings().zoom`, or rows overlap. `on_click` isn't allowed inside its rows: use `on_item_click` on the list. `herdr-app check` doesn't run row renderers, so row bugs only show in the real window.

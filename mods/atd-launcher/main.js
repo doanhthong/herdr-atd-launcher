@@ -22,6 +22,11 @@ const BACK = Symbol("back");
 const ROW_H = 30;
 const HEAD_H = 26;
 
+// A window overlay is dragged by any press the mod doesn't stop; the palette stays centered (§3).
+// Inner handlers (rows, inputs, menus) run first, so stopping at the root keeps them working.
+const stopPress = (_e, cx) => cx.stop_propagation();
+const noDrag = (el) => el.on_mouse_down("left", stopPress).on_mouse_down("right", stopPress).on_mouse_down("middle", stopPress);
+
 export default class Palette extends View {
   init(_props, cx) {
     this.handle = cx.focus_handle(); // the palette's own keyboard: the record screen has no text field
@@ -1243,7 +1248,7 @@ export default class Palette extends View {
       return this.renderInner(cx);
     } catch (e) {
       const t = theme();
-      return v_flex().id("atd-palette").track_focus(this.handle).on_key_down((e, cx) => { if (e.key === "escape") this.close(); })
+      return v_flex().id("atd-palette").track_focus(this.handle).when(true, noDrag).on_key_down((e, cx) => { if (e.key === "escape") this.close(); })
         .size_full().p(14).bg(t.popover).text_color(t.ansi1).child(`Palette render error: ${e?.message ?? e}`).child(div().text_size(11).child(String(e?.stack ?? "")));
     }
   }
@@ -1262,8 +1267,7 @@ export default class Palette extends View {
       .on_action("atd-tab", (_e, cx) => this.onKey({ key: "tab", modifiers: {} }, cx))
       .on_action("atd-here", (_e, cx) => (this.top().type === "record" ? this.onKey({ key: "enter", keystroke: "cmd-shift-enter", modifiers: { platform: true, shift: true } }, cx) : this.enter("here", cx)))
       .on_key_down((e, cx) => this.onKey(e, cx))
-      // A window overlay is dragged by any press the mod doesn't stop; the palette stays centered (§3).
-      .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
+      .when(true, noDrag)
       .size_full()
       .min_h(0)
       .p(14)
