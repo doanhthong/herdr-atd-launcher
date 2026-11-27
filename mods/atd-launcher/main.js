@@ -1262,6 +1262,8 @@ export default class Palette extends View {
       .on_action("atd-tab", (_e, cx) => this.onKey({ key: "tab", modifiers: {} }, cx))
       .on_action("atd-here", (_e, cx) => (this.top().type === "record" ? this.onKey({ key: "enter", keystroke: "cmd-shift-enter", modifiers: { platform: true, shift: true } }, cx) : this.enter("here", cx)))
       .on_key_down((e, cx) => this.onKey(e, cx))
+      // A window overlay is dragged by any press the mod doesn't stop; the palette stays centered (§3).
+      .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
       .size_full()
       .min_h(0)
       .p(14)
